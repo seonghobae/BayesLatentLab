@@ -127,7 +127,7 @@ export function validateItemMetadata(metadata: unknown[]): ValidationResult {
   metadata.forEach((item, _index) => {
     const result = ItemMetadataSchema.safeParse(item);
     if (!result.success) {
-      errors.push(`Item ${index}: ${result.error.message}`);
+      errors.push(`Item ${_index}: ${result.error.message}`);
     } else {
       validItems.push(result.data);
 

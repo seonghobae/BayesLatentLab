@@ -22,8 +22,8 @@ export * from './dif/analysis';
 // Export equating/linking
 export * from './equating/linking';
 
-// Export diagnostics
-export * from './diagnostics/fit';
+// Note: diagnostics module will be added in future version
+// export * from './diagnostics/fit';
 
 /**
  * Main analysis workflow
