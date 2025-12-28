@@ -23,7 +23,8 @@ describe('Stan Templates', () => {
       expect(code).toContain('model {');
       expect(code).toContain('difficulty');
       expect(code).toContain('theta');
-      expect(code).not.toContain('discrimination'); // Rasch has fixed discrimination
+      // Rasch model has fixed discrimination (not a parameter)
+      expect(code).not.toContain('vector<lower=0>[I] discrimination');
     });
 
     it('should generate 2PL model code', () => {

@@ -5,9 +5,9 @@
 import { 
   ResponseData, 
   ItemMetadata,
-  AnalysisConfiguration,
   ModelResults
 } from './types';
+import { AnalysisConfiguration } from './models/specification';
 import { 
   validateResponseData, 
   validateItemMetadata, 
@@ -69,14 +69,14 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
 
     // Step 4: Generate Stan model
     console.log('Step 4: Generating Stan model...');
-    const stanCode = generateStanModel(input.config.model);
+    generateStanModel(input.config.model);  // For future Stan execution
     console.log(`  - Model family: ${input.config.model.model_family}`);
     console.log(`  - Link function: ${input.config.model.link}`);
     console.log(`  - Dimensions: ${input.config.model.dimensions}`);
 
     // Step 5: Prepare data for Stan
     console.log('Step 5: Preparing data for Stan...');
-    const stanData = prepareStanData(input.responses, input.items, input.config);
+    prepareStanData(input.responses, input.items, input.config);  // For future Stan execution
 
     // Step 6: Run Stan estimation (placeholder)
     console.log('Step 6: Running Stan estimation...');

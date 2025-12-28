@@ -3,7 +3,7 @@
  */
 
 import { z } from 'zod';
-import { ResponseData, ItemMetadata, PersonMetadata, ItemType } from '../types';
+import { ResponseData, ItemMetadata, ItemType } from '../types';
 
 // Zod schemas for validation
 export const ResponseDataSchema = z.object({
@@ -96,7 +96,7 @@ export function validateResponseData(data: unknown[]): ValidationResult {
 
   // Check for duplicate person-item pairs
   const seen = new Set<string>();
-  validResponses.forEach((response, index) => {
+  validResponses.forEach((response) => {
     const key = `${response.person_id}_${response.item_id}`;
     if (seen.has(key)) {
       warnings.push(`Duplicate response for person ${response.person_id} and item ${response.item_id}`);
@@ -124,7 +124,7 @@ export function validateItemMetadata(metadata: unknown[]): ValidationResult {
   }
 
   const validItems: ItemMetadata[] = [];
-  metadata.forEach((item, index) => {
+  metadata.forEach((item, _index) => {
     const result = ItemMetadataSchema.safeParse(item);
     if (!result.success) {
       errors.push(`Item ${index}: ${result.error.message}`);
@@ -132,9 +132,9 @@ export function validateItemMetadata(metadata: unknown[]): ValidationResult {
       validItems.push(result.data);
 
       // Check category specifications
-      if (item.item_type === 'ordinal' || item.item_type === 'nominal') {
-        if (!item.categories || item.categories.length < 2) {
-          warnings.push(`Item ${item.item_id}: ordinal/nominal items should have at least 2 categories defined`);
+      if (result.data.item_type === 'ordinal' || result.data.item_type === 'nominal') {
+        if (!result.data.categories || result.data.categories.length < 2) {
+          warnings.push(`Item ${result.data.item_id}: ordinal/nominal items should have at least 2 categories defined`);
         }
       }
     }

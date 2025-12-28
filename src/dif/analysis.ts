@@ -2,7 +2,7 @@
  * DIF (Differential Item Functioning) detection module
  */
 
-import { DIFConfiguration, DIFResults, DIFItemResult, DIFMethod } from '../types';
+import { DIFConfiguration, DIFResults, DIFItemResult } from '../types';
 
 /**
  * Run DIF analysis
