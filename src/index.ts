@@ -36,4 +36,10 @@ export { runAnalysis } from './workflow';
 export const VERSION = '0.1.0';
 export const NAME = 'BayesLatentLab';
 
-console.log(`${NAME} v${VERSION} loaded successfully`);
+/**
+ * Print version information to console.
+ * Call this function explicitly if you need to log version info.
+ */
+export function printVersion(): void {
+  console.log(`${NAME} v${VERSION}`);
+}

@@ -177,8 +177,12 @@ function validateEstimationSettings(settings: Partial<EstimationSettings>): void
     throw new Error('warmup must be less than iterations');
   }
 
-  if (!settings.seed && settings.seed !== 0) {
+  if (settings.seed === undefined || settings.seed === null) {
     throw new Error('seed is required');
+  }
+  
+  if (!Number.isInteger(settings.seed)) {
+    throw new Error('seed must be an integer');
   }
 }
 
