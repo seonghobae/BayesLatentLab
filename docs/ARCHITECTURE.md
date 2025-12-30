@@ -6,7 +6,7 @@ BayesLatentLab follows a modular architecture designed for extensibility and mai
 
 ### High-Level Architecture
 
-```
+```text
 ┌─────────────┐
 │   User API  │
 └──────┬──────┘

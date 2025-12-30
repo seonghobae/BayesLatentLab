@@ -214,6 +214,10 @@ function meanMeanLinking(
     }
   });
 
+  if (count === 0) {
+    throw new Error('No matching anchor items found between forms');
+  }
+
   const meanBase = sumBase / count;
   const meanTarget = sumTarget / count;
 
@@ -249,10 +253,18 @@ function meanSigmaLinking(
     }
   });
 
+  if (difficulties.base.length === 0) {
+    throw new Error('No matching anchor items found between forms');
+  }
+
   const meanDiffBase = mean(difficulties.base);
   const meanDiffTarget = mean(difficulties.target);
   const sdDiscBase = standardDeviation(discriminations.base);
   const sdDiscTarget = standardDeviation(discriminations.target);
+
+  if (sdDiscTarget === 0) {
+    throw new Error('Target form anchor discrimination SD is zero; cannot compute linking slope');
+  }
 
   const slope = sdDiscBase / sdDiscTarget;
   const intercept = meanDiffBase - slope * meanDiffTarget;
@@ -389,10 +401,16 @@ async function performAnchorDiagnostics(
  */
 
 function mean(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
 function standardDeviation(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
   const m = mean(values);
   const variance = values.reduce((a, b) => a + Math.pow(b - m, 2), 0) / values.length;
   return Math.sqrt(variance);
