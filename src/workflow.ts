@@ -129,34 +129,54 @@ function prepareStanData(
   config: AnalysisConfiguration
 ): Record<string, unknown> {
   
-  // Create mappings
-  const personIds = Array.from(new Set(responses.map(r => r.person_id)));
-  const itemIds = Array.from(new Set(responses.map(r => r.item_id)));
+  // Create mappings - sort for reproducibility
+  const personIds = Array.from(new Set(responses.map(r => r.person_id))).sort();
+  const itemIds = Array.from(new Set(responses.map(r => r.item_id))).sort();
   
   const personMap = new Map(personIds.map((id, i) => [id, i + 1]));
   const itemMap = new Map(itemIds.map((id, i) => [id, i + 1]));
 
-  // Prepare Stan data structure
+  // Prepare Stan data structure with validation
   const stanData: Record<string, unknown> = {
     N: responses.length,
     I: itemIds.length,
     J: personIds.length,
-    ii: responses.map(r => itemMap.get(r.item_id)),
-    jj: responses.map(r => personMap.get(r.person_id)),
+    ii: responses.map(r => {
+      const idx = itemMap.get(r.item_id);
+      if (idx === undefined) throw new Error(`Unknown item_id: ${r.item_id}`);
+      return idx;
+    }),
+    jj: responses.map(r => {
+      const idx = personMap.get(r.person_id);
+      if (idx === undefined) throw new Error(`Unknown person_id: ${r.person_id}`);
+      return idx;
+    }),
     y: responses.map(r => r.response)
   };
 
-  // Add priors
+  // Add priors - check if keys already have 'prior_' prefix
   const priors = config.model.priors || getDefaultPriors(config.model.model_family);
   Object.entries(priors).forEach(([key, value]) => {
-    stanData[`prior_${key}`] = value;
+    // Only add 'prior_' prefix if not already present
+    if (key.startsWith('prior_')) {
+      stanData[key] = value;
+    } else {
+      stanData[`prior_${key}`] = value;
+    }
   });
 
   // Add ordinal-specific data if needed
   if (config.model.model_family === 'grm' || config.model.model_family === 'gpcm') {
-    const maxCategories = Math.max(...items
-      .filter(item => item.categories)
-      .map(item => item.categories!.length));
+    const ordinalItems = items.filter(item => 
+      item.categories && item.categories.length > 0
+    );
+    
+    if (ordinalItems.length === 0) {
+      throw new Error('GRM/GPCM models require items with category definitions');
+    }
+    
+    // K should be the maximum number of categories across all items
+    const maxCategories = Math.max(...ordinalItems.map(item => item.categories!.length));
     stanData.K = maxCategories;
   }
 

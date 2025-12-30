@@ -287,9 +287,13 @@ function holmCorrection(pValues: number[]): number[] {
   const n = pValues.length;
   const indexed = pValues.map((p, i) => ({ p, i })).sort((a, b) => a.p - b.p);
   const adjusted = new Array(n);
+  let maxAdjusted = 0;
   
+  // Process in sorted order and enforce monotonicity
   for (let k = 0; k < n; k++) {
-    adjusted[indexed[k].i] = Math.min(indexed[k].p * (n - k), 1);
+    const current = Math.min(indexed[k].p * (n - k), 1);
+    maxAdjusted = Math.max(maxAdjusted, current);
+    adjusted[indexed[k].i] = maxAdjusted;
   }
   
   return adjusted;
@@ -299,9 +303,13 @@ function fdrCorrection(pValues: number[]): number[] {
   const n = pValues.length;
   const indexed = pValues.map((p, i) => ({ p, i })).sort((a, b) => a.p - b.p);
   const adjusted = new Array(n);
+  let minAdjusted = 1;  // Work backwards to enforce monotonicity
   
-  for (let k = 0; k < n; k++) {
-    adjusted[indexed[k].i] = Math.min(indexed[k].p * n / (k + 1), 1);
+  // Process in reverse order to ensure monotonicity
+  for (let k = n - 1; k >= 0; k--) {
+    const current = Math.min(indexed[k].p * n / (k + 1), 1);
+    minAdjusted = Math.min(minAdjusted, current);
+    adjusted[indexed[k].i] = minAdjusted;
   }
   
   return adjusted;
@@ -329,8 +337,10 @@ export async function purifyAnchors(
     // Remove flagged items from anchors
     const newAnchors = currentAnchors.filter(id => !results.flagged_items.includes(id));
     
-    // Check convergence
-    converged = newAnchors.length === currentAnchors.length;
+    // Check convergence - both length and content must match
+    const anchorSet = new Set(currentAnchors);
+    converged = newAnchors.length === currentAnchors.length &&
+                newAnchors.every(id => anchorSet.has(id));
     currentAnchors = newAnchors;
     iteration++;
   }
