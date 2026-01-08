@@ -81,6 +81,11 @@ export interface ModelSpecification {
   link: LinkFunction;
   dimensions: number | 'auto';
   multilevel: MultilevelType;
+  identification?: {
+    strategy: 'fix_theta_mean' | 'fix_theta_variance' | 'fix_item_mean';
+    theta_mean?: number;
+    theta_sd?: number;
+  };
   priors?: PriorSpecification;
   constraints?: ConstraintSpecification;
 }

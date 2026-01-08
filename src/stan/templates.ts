@@ -22,7 +22,7 @@ export function generateStanModel(spec: ModelSpecification): string {
   if (spec.multilevel !== 'none') {
     throw new Error(`Stan template generation does not support multilevel models (got ${spec.multilevel}).`);
   }
-  const template = getModelTemplate(spec.model_family);
+  const template = getModelTemplate(spec);
   
   return `
 // Generated Stan model for ${spec.model_family}
@@ -43,10 +43,10 @@ ${template.generated_quantities_block || ''}
 /**
  * Get model template based on family
  */
-function getModelTemplate(family: IRTModelFamily): StanModelTemplate {
-  switch (family) {
+function getModelTemplate(spec: ModelSpecification): StanModelTemplate {
+  switch (spec.model_family) {
     case 'rasch_1pl':
-      return getRaschTemplate();
+      return getRaschTemplate(spec);
     case 'irt_1pl_common_slope':
       return get1PLTemplate();
     case 'irt_2pl':
@@ -58,14 +58,23 @@ function getModelTemplate(family: IRTModelFamily): StanModelTemplate {
     case 'gpcm':
       return getGPCMTemplate();
     default:
-      throw new Error(`Model family ${family} not yet implemented`);
+      throw new Error(`Model family ${spec.model_family} not yet implemented`);
   }
 }
 
 /**
  * Rasch (1PL with fixed discrimination a=1)
  */
-function getRaschTemplate(): StanModelTemplate {
+function getRaschTemplate(spec: ModelSpecification): StanModelTemplate {
+  const identification = spec.identification;
+  const thetaMean = identification?.theta_mean ?? 0;
+  const thetaSd = identification?.theta_sd ?? 1;
+  const thetaPrior = identification?.strategy === 'fix_theta_variance'
+    ? `theta ~ normal(${thetaMean}, ${thetaSd});`
+    : `theta ~ normal(${thetaMean}, prior_theta_sd);`;
+  const difficultyConstraint = identification?.strategy === 'fix_item_mean'
+    ? '\n  // Soft constraint to center difficulty for identification\n  target += normal_lpdf(mean(difficulty) | 0, 0.001);'
+    : '';
   return {
     data_block: `
 data {
@@ -90,7 +99,7 @@ parameters {
 model {
   // Priors
   difficulty ~ normal(prior_difficulty_mean, prior_difficulty_sd);
-  theta ~ normal(0, prior_theta_sd);
+  ${thetaPrior}${difficultyConstraint}
   
   // Likelihood (Rasch model with discrimination fixed at 1)
   for (n in 1:N) {
