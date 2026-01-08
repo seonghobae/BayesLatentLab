@@ -91,6 +91,54 @@ describe('Stan Templates', () => {
       expect(code).toContain('categorical_logit');
     });
 
+    it('should reject unimplemented 4PL template', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_4pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow(/not implemented/i);
+    });
+
+    it('should reject unimplemented 5PL template', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_5pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow(/not implemented/i);
+    });
+
+    it('should reject unimplemented PCM template', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'pcm',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow(/not implemented/i);
+    });
+
+    it('should reject unimplemented NRM template', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'nrm',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow(/not implemented/i);
+    });
+
     it('should reject multidimensional specifications', () => {
       const spec: ModelSpecification = {
         model_type: 'irt',
