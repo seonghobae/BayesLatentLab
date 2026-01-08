@@ -55,6 +55,14 @@ export interface ItemMetadata {
   category_labels?: string[];
   reverse_coded?: boolean;
   anchor_item?: boolean;
+  testlet_id?: string;
+}
+
+// Testlet specification
+export interface TestletSpecification {
+  testlet_id: string;
+  items: string[];
+  random_effect: 'intercept' | 'loading' | 'both';
 }
 
 // Person metadata
@@ -110,6 +118,28 @@ export interface EstimationSettings {
   parallel_chains?: boolean;
 }
 
+// Dimension selection configuration
+export interface DimensionSelectionConfiguration {
+  method: 'loo' | 'waic' | 'elpd_grid' | 'shrinkage';
+  dimension_range: [number, number];
+  criteria?: ('elpd' | 'se' | 'residual')[];
+}
+
+// Dimension selection results
+export interface ModelComparisonResult {
+  dimension: number;
+  elpd: number;
+  se: number;
+  elpd_diff?: number;
+  weight?: number;
+}
+
+export interface DimensionSelectionResults {
+  selected_dimension: number;
+  model_comparisons: ModelComparisonResult[];
+  effective_dimension?: number;
+}
+
 // DIF configuration
 export interface DIFConfiguration {
   method: DIFMethod;
@@ -147,6 +177,7 @@ export interface ModelResults {
   fit_statistics?: FitStatistics;
   dif_results?: DIFResults;
   equating_results?: EquatingResults;
+  dimension_selection?: DimensionSelectionResults;
   warnings: string[];
   timestamp: Date;
   seed: number;
@@ -182,6 +213,7 @@ export interface ParameterEstimates {
     dimensions: number;
     matrix: number[][];
   };
+  testlet_effects?: { [testlet_id: string]: ParameterSummary };
   factor_scores?: { [person_id: string]: ParameterSummary[] };
 }
 
