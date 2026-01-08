@@ -195,7 +195,22 @@ export function rawScoreToTheta(
 }
 
 /**
- * Calculate reliability coefficient
+ * Compute marginal reliability from a distribution of ability estimates.
+ *
+ * Uses true-score variance over total variance (true + error) based on the
+ * supplied thetas and 2PL item parameters. Intended for simulation studies or
+ * contexts where the theta distribution is known.
+ *
+ * Interpretation: returns a coefficient in [0, 1], where higher values indicate
+ * more reliable measurement for the given theta distribution.
+ *
+ * Note: calculateTCC/calculateSEM can support additional item parameters, but
+ * this function uses discrimination and difficulty only. This is part of the
+ * public API and should be tested.
+ *
+ * @param thetas - Array of ability estimates used to approximate the theta distribution.
+ * @param items - Item parameters with discrimination and difficulty (2PL form).
+ * @returns Reliability coefficient for the provided theta distribution.
  */
 export function calculateReliability(
   thetas: number[],
