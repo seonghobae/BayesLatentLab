@@ -166,6 +166,17 @@ export interface ParameterEstimates {
   guessing?: { [item_id: string]: ParameterSummary };
   upper_asymptote?: { [item_id: string]: ParameterSummary };
   loadings?: { [item_id: string]: ParameterSummary[] };
+  loading_matrix?: {
+    items: string[];
+    dimensions: number;
+    values: number[][];
+    rotated: boolean;
+    rotation_method?: 'varimax' | 'promax' | 'oblimin';
+  };
+  factor_correlations?: {
+    dimensions: number;
+    matrix: number[][];
+  };
   factor_scores?: { [person_id: string]: ParameterSummary[] };
 }
 
