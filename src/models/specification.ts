@@ -95,7 +95,7 @@ function getDefaultPriors(): PriorSpecification {
 /**
  * Validate configuration
  */
-function validateConfig(config: unknown): void {
+export function validateConfig(config: unknown): void {
   if (typeof config !== 'object' || config === null) {
     throw new Error('Configuration must be an object');
   }

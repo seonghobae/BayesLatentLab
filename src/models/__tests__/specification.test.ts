@@ -6,7 +6,8 @@ import {
   createDefaultConfig,
   loadConfigFromYAML,
   saveConfigToYAML,
-  exampleConfigs
+  exampleConfigs,
+  validateConfig
 } from '../specification.js';
 
 describe('Model Specification', () => {
@@ -56,6 +57,58 @@ estimation:
     });
   });
 
+  describe('YAML serialization - error handling', () => {
+    it('should throw on invalid YAML syntax', () => {
+      const invalidYaml = 'model:\\n  - invalid: [syntax';
+      expect(() => loadConfigFromYAML(invalidYaml)).toThrow();
+    });
+
+    it('should throw on missing required fields', () => {
+      const incompleteYaml = 'model:\\n  model_type: irt\\n';
+      expect(() => loadConfigFromYAML(incompleteYaml)).toThrow();
+    });
+
+    it('should throw on invalid model family', () => {
+      const invalidYaml = `
+model:
+  model_type: irt
+  model_family: invalid_family
+  link: logit
+  dimensions: 1
+  multilevel: none
+
+estimation:
+  sampler: nuts
+  chains: 2
+  iterations: 1000
+  warmup: 500
+  thin: 1
+  seed: 42
+`;
+      expect(() => loadConfigFromYAML(invalidYaml)).toThrow();
+    });
+
+    it('should throw on invalid estimation settings', () => {
+      const invalidYaml = `
+model:
+  model_type: irt
+  model_family: rasch_1pl
+  link: logit
+  dimensions: 1
+  multilevel: none
+
+estimation:
+  sampler: nuts
+  chains: -1
+  iterations: -5
+  warmup: 0
+  thin: 1
+  seed: 42
+`;
+      expect(() => loadConfigFromYAML(invalidYaml)).toThrow();
+    });
+  });
+
   describe('example configs', () => {
     it('should provide simple 2PL config', () => {
       const config = exampleConfigs.simple2PL();
@@ -89,6 +142,23 @@ estimation:
       const config = exampleConfigs.withEquating();
       expect(config.equating).toBeDefined();
       expect(config.equating?.method).toBe('separate_linking');
+    });
+  });
+
+  describe('example configs validation', () => {
+    it('should generate valid configs that pass validation', () => {
+      const configs = [
+        exampleConfigs.simple2PL(),
+        exampleConfigs.rasch(),
+        exampleConfigs.grm(),
+        exampleConfigs.multilevel2PL(),
+        exampleConfigs.withDIF(),
+        exampleConfigs.withEquating()
+      ];
+
+      configs.forEach(config => {
+        expect(() => validateConfig(config)).not.toThrow();
+      });
     });
   });
 });
