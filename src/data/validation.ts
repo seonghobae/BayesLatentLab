@@ -153,6 +153,14 @@ export function validateItemMetadata(metadata: unknown[]): ValidationResult {
         if (!result.data.categories || result.data.categories.length < 2) {
           warnings.push(`Item ${result.data.item_id}: ordinal/nominal items should have at least 2 categories defined`);
         }
+        if (result.data.categories && result.data.category_labels) {
+          if (result.data.categories.length !== result.data.category_labels.length) {
+            warnings.push(
+              `Item ${result.data.item_id}: category_labels length (${result.data.category_labels.length}) ` +
+              `does not match categories length (${result.data.categories.length})`
+            );
+          }
+        }
       }
     }
   });
@@ -182,6 +190,10 @@ export function generateDataSummary(
 ): DataSummary {
   const personIds = new Set(responses.map(r => r.person_id));
   const itemIds = new Set(responses.map(r => r.item_id));
+  const totalPossible = personIds.size * itemIds.size;
+  const missingRate = totalPossible > 0
+    ? 1 - (responses.length / totalPossible)
+    : 0;
 
   const itemMap = new Map(items.map(item => [item.item_id, item]));
 
@@ -269,7 +281,7 @@ export function generateDataSummary(
     n_persons: personIds.size,
     n_items: itemIds.size,
     n_responses: responses.length,
-    missing_rate: 1 - (responses.length / (personIds.size * itemIds.size)),
+    missing_rate: missingRate,
     item_summaries: itemSummaries,
     ...(summaryWarnings.length > 0 ? { warnings: summaryWarnings } : {}),
     ...(groupSummaries ? { group_summaries: groupSummaries } : {}),

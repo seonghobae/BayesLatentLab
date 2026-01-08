@@ -48,6 +48,15 @@ describe('Data Validation', () => {
       const result = validateResponseData(data);
       expect(result.warnings.length).toBeGreaterThan(0);
     });
+
+    it('should reject non-positive weights', () => {
+      const data: ResponseData[] = [
+        { person_id: 'p1', item_id: 'i1', response: 1, weight: 0 }
+      ];
+
+      const result = validateResponseData(data);
+      expect(result.valid).toBe(false);
+    });
   });
 
   describe('validateItemMetadata', () => {
@@ -78,6 +87,29 @@ describe('Data Validation', () => {
 
       const result = validateItemMetadata(items);
       expect(result.warnings.length).toBeGreaterThan(0);
+    });
+
+    it('should warn about empty categories', () => {
+      const items: ItemMetadata[] = [
+        { item_id: 'i1', item_type: 'ordinal', categories: [] }
+      ];
+
+      const result = validateItemMetadata(items);
+      expect(result.warnings.length).toBeGreaterThan(0);
+    });
+
+    it('should warn about category label mismatches', () => {
+      const items: ItemMetadata[] = [
+        {
+          item_id: 'i1',
+          item_type: 'ordinal',
+          categories: [1, 2, 3],
+          category_labels: ['low', 'mid']
+        }
+      ];
+
+      const result = validateItemMetadata(items);
+      expect(result.warnings.some(w => w.includes('category_labels'))).toBe(true);
     });
   });
 
@@ -125,6 +157,27 @@ describe('Data Validation', () => {
       expect(itemSummary.n_responses).toBe(3);
       expect(itemSummary.mean).toBeCloseTo(0.667, 2);
     });
+
+    it('should handle empty responses', () => {
+      const summary = generateDataSummary([], []);
+
+      expect(summary.n_persons).toBe(0);
+      expect(summary.n_items).toBe(0);
+      expect(summary.n_responses).toBe(0);
+      expect(summary.missing_rate).toBe(0);
+    });
+
+    it('should warn when responses reference missing metadata', () => {
+      const responses: ResponseData[] = [
+        { person_id: 'p1', item_id: 'missing', response: 1 }
+      ];
+      const items: ItemMetadata[] = [
+        { item_id: 'i1', item_type: 'binary' }
+      ];
+
+      const summary = generateDataSummary(responses, items);
+      expect(summary.warnings?.some(w => w.includes('missing'))).toBe(true);
+    });
   });
 
   describe('checkDataQuality', () => {
@@ -159,6 +212,25 @@ describe('Data Validation', () => {
 
       const result = checkDataQuality(summary);
       expect(result.warnings.some(w => w.includes('sparse categories'))).toBe(true);
+    });
+
+    it('should not warn at missing rate thresholds', () => {
+      const summary = {
+        n_persons: 10,
+        n_items: 1,
+        n_responses: 7,
+        missing_rate: 0.3,
+        item_summaries: [{
+          item_id: 'i1',
+          item_type: 'binary' as const,
+          n_responses: 5,
+          missing_rate: 0.5
+        }]
+      };
+
+      const result = checkDataQuality(summary);
+      expect(result.warnings.some(w => w.includes('High overall missing rate'))).toBe(false);
+      expect(result.warnings.some(w => w.includes('high missing rate'))).toBe(false);
     });
   });
 });
