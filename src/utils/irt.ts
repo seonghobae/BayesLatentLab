@@ -165,8 +165,20 @@ export function rawScoreToTheta(
   maxIterations: number = 100,
   tolerance: number = 0.001
 ): number {
+  const nItems = items.length;
+  if (nItems === 0) {
+    throw new Error('rawScoreToTheta requires at least one item.');
+  }
+  if (rawScore <= 0) {
+    return -Infinity;
+  }
+  if (rawScore >= nItems) {
+    return Infinity;
+  }
+
   // Newton-Raphson iteration
   let theta = 0; // Initial guess
+  let lastDiff = Number.NaN;
   
   for (let iter = 0; iter < maxIterations; iter++) {
     let expectedScore = 0;
@@ -179,6 +191,7 @@ export function rawScoreToTheta(
     });
     
     const diff = rawScore - expectedScore;
+    lastDiff = diff;
     
     if (Math.abs(diff) < tolerance) {
       return theta;
@@ -191,6 +204,10 @@ export function rawScoreToTheta(
     }
   }
   
+  console.warn(
+    `rawScoreToTheta did not converge after ${maxIterations} iterations ` +
+    `(rawScore=${rawScore}, theta=${theta}, lastDiff=${lastDiff}, tolerance=${tolerance})`
+  );
   return theta;
 }
 
