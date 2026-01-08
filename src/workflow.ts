@@ -230,16 +230,16 @@ function prepareStanData(
       throw new Error('GRM/GPCM models require items with category definitions');
     }
     
-    // K should be the maximum number of categories across all items
+    // K should be the maximum number of categories across all items.
+    // Categories should be consecutive integers (1-based is recommended).
     const categoryCounts = ordinalItems.map(item => item.categories!.length);
     const allCategories = ordinalItems.flatMap(item => item.categories!);
     const minCategory = Math.min(...allCategories);
     const maxCategory = Math.max(...allCategories);
     const maxCount = Math.max(...categoryCounts);
-    const maxCategories = minCategory === 0
+    stanData.K = minCategory === 0
       ? Math.max(maxCount, maxCategory + 1)
       : maxCount;
-    stanData.K = maxCategories;
   }
 
   return stanData;

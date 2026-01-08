@@ -89,6 +89,9 @@ model:
   categories: [1, 2, 3, 4, 5]
 }
 ```
+**Notes**:
+- Categories should be consecutive integers; 1-based indexing is recommended (Stan convention).
+- If categories start at 0, K is computed from the maximum category value.
 
 #### Generalized Partial Credit Model (GPCM)
 
