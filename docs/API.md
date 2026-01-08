@@ -14,6 +14,7 @@ Main entry point for running a complete analysis workflow.
 **Returns:** Promise resolving to analysis results
 
 **Example:**
+
 ```typescript
 const result = await runAnalysis({ responses, items, config });
 ```
