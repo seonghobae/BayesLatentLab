@@ -20,6 +20,7 @@ export interface AnalysisInput {
   responses: ResponseData[];
   items: ItemMetadata[];
   config: AnalysisConfiguration;
+  logger?: (message: string) => void;
 }
 
 export interface AnalysisOutput {
@@ -35,10 +36,11 @@ export interface AnalysisOutput {
 export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput> {
   const errors: string[] = [];
   const warnings: string[] = [];
+  const log = input.logger ?? console.log;
 
   try {
     // Step 1: Validate input data
-    console.log('Step 1: Validating input data...');
+    log('Step 1: Validating input data...');
     const responseValidation = validateResponseData(input.responses);
     const itemValidation = validateItemMetadata(input.items);
 
@@ -55,41 +57,41 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
     warnings.push(...responseValidation.warnings, ...itemValidation.warnings);
 
     // Step 2: Generate data summary
-    console.log('Step 2: Generating data summary...');
+    log('Step 2: Generating data summary...');
     const dataSummary = generateDataSummary(input.responses, input.items);
-    console.log(`  - ${dataSummary.n_persons} persons`);
-    console.log(`  - ${dataSummary.n_items} items`);
-    console.log(`  - ${dataSummary.n_responses} responses`);
-    console.log(`  - ${(dataSummary.missing_rate * 100).toFixed(1)}% missing`);
+    log(`  - ${dataSummary.n_persons} persons`);
+    log(`  - ${dataSummary.n_items} items`);
+    log(`  - ${dataSummary.n_responses} responses`);
+    log(`  - ${(dataSummary.missing_rate * 100).toFixed(1)}% missing`);
     if (dataSummary.warnings) {
       warnings.push(...dataSummary.warnings);
     }
 
     // Step 3: Check data quality
-    console.log('Step 3: Checking data quality...');
+    log('Step 3: Checking data quality...');
     const qualityCheck = checkDataQuality(dataSummary);
     warnings.push(...qualityCheck.warnings);
 
     // Step 4: Generate Stan model
-    console.log('Step 4: Generating Stan model...');
+    log('Step 4: Generating Stan model...');
     generateStanModel(input.config.model);  // For future Stan execution
-    console.log(`  - Model family: ${input.config.model.model_family}`);
-    console.log(`  - Link function: ${input.config.model.link}`);
-    console.log(`  - Dimensions: ${input.config.model.dimensions}`);
+    log(`  - Model family: ${input.config.model.model_family}`);
+    log(`  - Link function: ${input.config.model.link}`);
+    log(`  - Dimensions: ${input.config.model.dimensions}`);
 
     // Step 5: Prepare data for Stan
-    console.log('Step 5: Preparing data for Stan...');
+    log('Step 5: Preparing data for Stan...');
     prepareStanData(input.responses, input.items, input.config);  // For future Stan execution
 
     // Step 6: Run Stan estimation (placeholder)
-    console.log('Step 6: Running Stan estimation...');
-    console.log('  [Note: Actual Stan execution requires CmdStan installation]');
-    console.log(`  - Chains: ${input.config.estimation.chains}`);
-    console.log(`  - Iterations: ${input.config.estimation.iterations}`);
-    console.log(`  - Warmup: ${input.config.estimation.warmup}`);
+    log('Step 6: Running Stan estimation...');
+    log('  [Note: Actual Stan execution requires CmdStan installation]');
+    log(`  - Chains: ${input.config.estimation.chains}`);
+    log(`  - Iterations: ${input.config.estimation.iterations}`);
+    log(`  - Warmup: ${input.config.estimation.warmup}`);
 
     // Step 7: Post-processing (placeholder)
-    console.log('Step 7: Post-processing results...');
+    log('Step 7: Post-processing results...');
 
     // For now, return a placeholder result
     const results: ModelResults = {
