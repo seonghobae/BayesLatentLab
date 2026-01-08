@@ -181,7 +181,14 @@ function prepareStanData(
     }
     
     // K should be the maximum number of categories across all items
-    const maxCategories = Math.max(...ordinalItems.map(item => item.categories!.length));
+    const categoryCounts = ordinalItems.map(item => item.categories!.length);
+    const allCategories = ordinalItems.flatMap(item => item.categories!);
+    const minCategory = Math.min(...allCategories);
+    const maxCategory = Math.max(...allCategories);
+    const maxCount = Math.max(...categoryCounts);
+    const maxCategories = minCategory === 0
+      ? Math.max(maxCount, maxCategory + 1)
+      : maxCount;
     stanData.K = maxCategories;
   }
 
