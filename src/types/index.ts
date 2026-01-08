@@ -119,6 +119,11 @@ export interface DIFConfiguration {
   test_parameters: ('discrimination' | 'difficulty' | 'thresholds')[];
   multiple_comparison_correction?: 'none' | 'bonferroni' | 'holm' | 'fdr';
   effect_size?: boolean;
+  method_options?: {
+    sequential_testing?: boolean;
+    posterior_threshold?: number;
+    effect_size_metric?: 'param_diff' | 'ncdif' | 'ets_classification';
+  };
 }
 
 // Equating configuration
