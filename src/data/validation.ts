@@ -3,7 +3,7 @@
  */
 
 import { z } from 'zod';
-import { ResponseData, ItemMetadata, ItemType } from '../types';
+import { ResponseData, ItemMetadata, ItemType } from '../types/index.js';
 
 // Zod schemas for validation
 export const ResponseDataSchema = z.object({

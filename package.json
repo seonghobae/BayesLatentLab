@@ -2,12 +2,13 @@
   "name": "bayes-latent-lab",
   "version": "0.1.0",
   "description": "Bayesian Multilevel IRT/CFA/EFA + Test Equating/Linking + DIF + LD Analysis Tool",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "lint": "eslint . --ext .ts",
-    "dev": "ts-node src/index.ts",
+    "dev": "node --loader ts-node/esm src/index.ts",
     "docker:build": "docker build -t bayeslatentlab .",
     "docker:run": "docker run -p 3000:3000 bayeslatentlab"
   },

@@ -5,30 +5,30 @@
  */
 
 // Export types
-export * from './types';
+export * from './types/index.js';
 
 // Export data validation
-export * from './data/validation';
+export * from './data/validation.js';
 
 // Export model specification
-export * from './models/specification';
+export * from './models/specification.js';
 
 // Export Stan templates
-export * from './stan/templates';
+export * from './stan/templates.js';
 
 // Export DIF analysis
-export * from './dif/analysis';
+export * from './dif/analysis.js';
 
 // Export equating/linking
-export * from './equating/linking';
+export * from './equating/linking.js';
 
 // Note: diagnostics module will be added in future version
-// export * from './diagnostics/fit';
+// export * from './diagnostics/fit.js';
 
 /**
  * Main analysis workflow
  */
-export { runAnalysis } from './workflow';
+export { runAnalysis } from './workflow.js';
 
 /**
  * Version information
