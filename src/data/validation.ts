@@ -225,8 +225,9 @@ export function generateDataSummary(
     if (itemMeta?.item_type === 'binary' || itemMeta?.item_type === 'continuous') {
       if (values.length > 0) {
         const sum = values.reduce((a, b) => a + b, 0);
-        summary.mean = sum / values.length;
-        const variance = values.reduce((a, b) => a + Math.pow(b - summary.mean!, 2), 0) / values.length;
+        const mean = sum / values.length;
+        summary.mean = mean;
+        const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
         summary.sd = Math.sqrt(variance);
       }
     }
