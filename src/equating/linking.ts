@@ -295,9 +295,28 @@ function stockingLordLinking(
   anchorItems: string[]
 ): LinkingCoefficients {
   
-  // Placeholder: would implement iterative optimization
-  // to minimize sum of squared differences in ICCs
-  return meanSigmaLinking(baseForm, targetForm, anchorItems);
+  const initial = meanSigmaLinking(baseForm, targetForm, anchorItems);
+  const anchorPairs = getAnchorPairs(baseForm, targetForm, anchorItems);
+  if (anchorPairs.length === 0) {
+    return initial;
+  }
+
+  const thetaGrid = Array.from({ length: 61 }, (_, i) => -3 + i * 0.1);
+  const objective = (slope: number, intercept: number): number => {
+    let sumSq = 0;
+    thetaGrid.forEach(theta => {
+      const thetaTarget = slope * theta + intercept;
+      anchorPairs.forEach(({ base, target }) => {
+        const baseP = calculateICC(theta, base.discrimination, base.difficulty);
+        const targetP = calculateICC(thetaTarget, target.discrimination, target.difficulty);
+        const diff = baseP - targetP;
+        sumSq += diff * diff;
+      });
+    });
+    return sumSq;
+  };
+
+  return optimizeLinkingCoefficients(initial, objective);
 }
 
 /**
@@ -309,9 +328,32 @@ function haebaraLinking(
   anchorItems: string[]
 ): LinkingCoefficients {
   
-  // Placeholder: would implement iterative optimization
-  // to minimize differences in test characteristic curves
-  return meanSigmaLinking(baseForm, targetForm, anchorItems);
+  const initial = meanSigmaLinking(baseForm, targetForm, anchorItems);
+  const anchorPairs = getAnchorPairs(baseForm, targetForm, anchorItems);
+  if (anchorPairs.length === 0) {
+    return initial;
+  }
+
+  const thetaGrid = Array.from({ length: 61 }, (_, i) => -3 + i * 0.1);
+  const objective = (slope: number, intercept: number): number => {
+    let sumSq = 0;
+    thetaGrid.forEach(theta => {
+      const thetaTarget = slope * theta + intercept;
+      const baseTcc = anchorPairs.reduce(
+        (sum, pair) => sum + calculateICC(theta, pair.base.discrimination, pair.base.difficulty),
+        0
+      );
+      const targetTcc = anchorPairs.reduce(
+        (sum, pair) => sum + calculateICC(thetaTarget, pair.target.discrimination, pair.target.difficulty),
+        0
+      );
+      const diff = baseTcc - targetTcc;
+      sumSq += diff * diff;
+    });
+    return sumSq;
+  };
+
+  return optimizeLinkingCoefficients(initial, objective);
 }
 
 /**
@@ -444,4 +486,65 @@ function standardDeviation(values: number[]): number {
   const m = mean(values);
   const variance = values.reduce((a, b) => a + Math.pow(b - m, 2), 0) / values.length;
   return Math.sqrt(variance);
+}
+
+function getAnchorPairs(
+  baseForm: FormParameters,
+  targetForm: FormParameters,
+  anchorItems: string[]
+): Array<{ base: ItemParams; target: ItemParams }> {
+  const itemIds = anchorItems.length > 0
+    ? anchorItems
+    : Object.keys(baseForm.item_parameters);
+  return itemIds
+    .map(itemId => ({
+      base: baseForm.item_parameters[itemId],
+      target: targetForm.item_parameters[itemId]
+    }))
+    .filter((pair): pair is { base: ItemParams; target: ItemParams } => {
+      return pair.base !== undefined && pair.target !== undefined;
+    });
+}
+
+function optimizeLinkingCoefficients(
+  initial: LinkingCoefficients,
+  objective: (slope: number, intercept: number) => number
+): LinkingCoefficients {
+  const slopeCenter = initial.slope || 1;
+  const interceptCenter = initial.intercept || 0;
+  const slopeMin = Math.max(0.01, slopeCenter * 0.5);
+  const slopeMax = slopeCenter * 1.5;
+  const interceptMin = interceptCenter - 2;
+  const interceptMax = interceptCenter + 2;
+  const steps = 21;
+
+  let bestSlope = slopeCenter;
+  let bestIntercept = interceptCenter;
+  let bestValue = objective(bestSlope, bestIntercept);
+
+  for (let i = 0; i < steps; i++) {
+    const slope = slopeMin + (slopeMax - slopeMin) * (i / (steps - 1));
+    for (let j = 0; j < steps; j++) {
+      const intercept = interceptMin + (interceptMax - interceptMin) * (j / (steps - 1));
+      const value = objective(slope, intercept);
+      if (!Number.isFinite(value)) {
+        continue;
+      }
+      if (value < bestValue) {
+        bestValue = value;
+        bestSlope = slope;
+        bestIntercept = intercept;
+      }
+    }
+  }
+
+  if (!Number.isFinite(bestValue)) {
+    return initial;
+  }
+
+  return {
+    ...initial,
+    slope: bestSlope,
+    intercept: bestIntercept
+  };
 }
