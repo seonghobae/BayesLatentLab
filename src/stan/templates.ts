@@ -53,10 +53,18 @@ function getModelTemplate(spec: ModelSpecification): StanModelTemplate {
       return get2PLTemplate();
     case 'irt_3pl':
       return get3PLTemplate();
+    case 'irt_4pl':
+      return get4PLTemplate();
+    case 'irt_5pl':
+      return get5PLTemplate();
     case 'grm':
       return getGRMTemplate();
     case 'gpcm':
       return getGPCMTemplate();
+    case 'pcm':
+      return getPCMTemplate();
+    case 'nrm':
+      return getNRMTemplate();
     default:
       throw new Error(`Model family ${spec.model_family} not yet implemented`);
   }
@@ -408,6 +416,22 @@ generated_quantities {
   }
 }`
   };
+}
+
+function getPCMTemplate(): StanModelTemplate {
+  throw new Error('PCM template is not implemented yet.');
+}
+
+function getNRMTemplate(): StanModelTemplate {
+  throw new Error('NRM template is not implemented yet.');
+}
+
+function get4PLTemplate(): StanModelTemplate {
+  throw new Error('4PL template is not implemented yet.');
+}
+
+function get5PLTemplate(): StanModelTemplate {
+  throw new Error('5PL template is not implemented yet.');
 }
 
 /**
