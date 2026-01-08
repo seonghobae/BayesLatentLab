@@ -61,6 +61,9 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
     console.log(`  - ${dataSummary.n_items} items`);
     console.log(`  - ${dataSummary.n_responses} responses`);
     console.log(`  - ${(dataSummary.missing_rate * 100).toFixed(1)}% missing`);
+    if (dataSummary.warnings) {
+      warnings.push(...dataSummary.warnings);
+    }
 
     // Step 3: Check data quality
     console.log('Step 3: Checking data quality...');

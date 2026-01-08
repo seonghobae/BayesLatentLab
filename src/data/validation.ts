@@ -46,6 +46,7 @@ export interface DataSummary {
   item_summaries: ItemSummary[];
   group_summaries?: GroupSummary[];
   form_summaries?: FormSummary[];
+  warnings?: string[];
 }
 
 export interface ItemSummary {
@@ -185,9 +186,13 @@ export function generateDataSummary(
   const itemMap = new Map(items.map(item => [item.item_id, item]));
 
   // Calculate item summaries
+  const summaryWarnings: string[] = [];
   const itemSummaries: ItemSummary[] = Array.from(itemIds).map(itemId => {
     const itemResponses = responses.filter(r => r.item_id === itemId);
     const itemMeta = itemMap.get(itemId);
+    if (!itemMeta) {
+      summaryWarnings.push(`Item ${itemId}: No metadata found, defaulting to item_type='binary'`);
+    }
     const values = itemResponses.map(r => r.response);
 
     const summary: ItemSummary = {
@@ -259,6 +264,7 @@ export function generateDataSummary(
     n_responses: responses.length,
     missing_rate: 1 - (responses.length / (personIds.size * itemIds.size)),
     item_summaries: itemSummaries,
+    ...(summaryWarnings.length > 0 ? { warnings: summaryWarnings } : {}),
     ...(groupSummaries ? { group_summaries: groupSummaries } : {}),
     ...(formSummaries ? { form_summaries: formSummaries } : {})
   };
