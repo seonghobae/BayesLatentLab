@@ -117,5 +117,23 @@ describe('Stan Templates', () => {
       expect(priors).toHaveProperty('prior_guessing_alpha');
       expect(priors).toHaveProperty('prior_guessing_beta');
     });
+
+    it('should return priors for GRM model', () => {
+      const priors = getDefaultPriors('grm');
+
+      expect(priors).toHaveProperty('prior_theta_sd');
+      expect(priors).toHaveProperty('prior_discrimination_mean');
+      expect(priors).toHaveProperty('prior_difficulty_mean');
+      expect(priors.prior_theta_sd).toBe(1.0);
+    });
+
+    it('should return priors for GPCM model', () => {
+      const priors = getDefaultPriors('gpcm');
+
+      expect(priors).toHaveProperty('prior_theta_sd');
+      expect(priors).toHaveProperty('prior_discrimination_mean');
+      expect(priors).toHaveProperty('prior_difficulty_mean');
+      expect(priors.prior_difficulty_mean).toBe(0.0);
+    });
   });
 });
