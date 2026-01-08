@@ -402,7 +402,15 @@ generated_quantities {
 }
 
 /**
- * Get default priors for a model family
+ * Get default priors for a model family.
+ *
+ * Default priors are weakly informative:
+ * - theta_sd: 1.0 (standard normal abilities)
+ * - difficulty: N(0, 2) (covers typical difficulty ranges)
+ * - discrimination: LogNormal(0, 1) (median=1, supports ~[0.1, 10])
+ * - guessing (3PL): Beta(5, 17) (mean~0.23, suitable for 4-option items)
+ *
+ * Users should adjust priors based on their context and item types.
  */
 export function getDefaultPriors(family: IRTModelFamily): { [key: string]: number } {
   const defaults: { [key: string]: number } = {
