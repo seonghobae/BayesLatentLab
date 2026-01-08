@@ -12,8 +12,22 @@ export function calculateICC(
   guessing: number = 0,
   upperAsymptote: number = 1
 ): number {
+  if (discrimination < 0) {
+    throw new RangeError('Discrimination must be non-negative.');
+  }
+  if (guessing < 0 || guessing > 1) {
+    throw new RangeError('Guessing parameter must be in [0, 1].');
+  }
+  if (upperAsymptote < 0 || upperAsymptote > 1) {
+    throw new RangeError('Upper asymptote must be in [0, 1].');
+  }
+  if (upperAsymptote < guessing) {
+    throw new RangeError('Upper asymptote must be >= guessing.');
+  }
+
   const eta = discrimination * (theta - difficulty);
-  const logistic = 1 / (1 + Math.exp(-eta));
+  const clampedEta = Math.max(-700, Math.min(700, eta));
+  const logistic = 1 / (1 + Math.exp(-clampedEta));
   return guessing + (upperAsymptote - guessing) * logistic;
 }
 
