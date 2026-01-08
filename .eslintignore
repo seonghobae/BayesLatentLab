@@ -4,4 +4,3 @@ node_modules/
 *.js
 coverage/
 examples/
-**/__tests__/

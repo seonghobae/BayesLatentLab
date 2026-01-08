@@ -27,6 +27,12 @@
       "rules": {
         "no-console": "warn"
       }
+    },
+    {
+      "files": ["**/__tests__/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
     }
   ]
 }
