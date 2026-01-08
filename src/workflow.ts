@@ -77,7 +77,8 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
 
     // Step 4: Generate Stan model
     log('Step 4: Generating Stan model...');
-    generateStanModel(input.config.model);  // For future Stan execution
+    // generateStanModel validates the spec; generated code will be used by a stanRunner later.
+    generateStanModel(input.config.model);
     log(`  - Model family: ${input.config.model.model_family}`);
     log(`  - Link function: ${input.config.model.link}`);
     log(`  - Dimensions: ${input.config.model.dimensions}`);
