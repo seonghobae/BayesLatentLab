@@ -37,7 +37,12 @@ export interface LocalDependenceConfig {
  * Load analysis configuration from YAML
  */
 export function loadConfigFromYAML(yamlString: string): AnalysisConfiguration {
-  const config = yaml.parse(yamlString);
+  const config = yaml.parse(yamlString, {
+    schema: 'core',
+    maxAliasCount: 100,
+    stringKeys: true,
+    strict: true
+  });
   validateConfig(config);
   return config as AnalysisConfiguration;
 }
