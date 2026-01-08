@@ -45,11 +45,11 @@ interface GroupData {
 /**
  * IRT Likelihood Ratio DIF test
  */
-async function runIRTLikelihoodRatioDIF(
+function runIRTLikelihoodRatioDIF(
   config: DIFConfiguration,
   itemParameters: { [itemId: string]: ItemParameters },
   groupData: GroupData
-): Promise<DIFResults> {
+): DIFResults {
   
   const itemResults: { [itemId: string]: DIFItemResult } = {};
   const flaggedItems: string[] = [];
@@ -102,11 +102,11 @@ async function runIRTLikelihoodRatioDIF(
 /**
  * Wald DIF test
  */
-async function runWaldDIF(
+function runWaldDIF(
   config: DIFConfiguration,
   itemParameters: { [itemId: string]: ItemParameters },
   groupData: GroupData
-): Promise<DIFResults> {
+): DIFResults {
   
   const itemResults: { [itemId: string]: DIFItemResult } = {};
   const flaggedItems: string[] = [];
@@ -148,11 +148,11 @@ async function runWaldDIF(
 /**
  * Lord's DIF test
  */
-async function runLordDIF(
+function runLordDIF(
   config: DIFConfiguration,
   itemParameters: { [itemId: string]: ItemParameters },
   groupData: GroupData
-): Promise<DIFResults> {
+): DIFResults {
   // Lord's test is similar to Wald but with specific weighting
   return runWaldDIF(config, itemParameters, groupData);
 }
@@ -160,11 +160,11 @@ async function runLordDIF(
 /**
  * Bayesian DIF test
  */
-async function runBayesianDIF(
+function runBayesianDIF(
   config: DIFConfiguration,
   itemParameters: { [itemId: string]: ItemParameters },
   groupData: GroupData
-): Promise<DIFResults> {
+): DIFResults {
   
   const itemResults: { [itemId: string]: DIFItemResult } = {};
   const flaggedItems: string[] = [];
