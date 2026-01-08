@@ -74,7 +74,7 @@ export function createDefaultConfig(): AnalysisConfiguration {
       warmup: 1000,
       thin: 1,
       seed: 12345,
-      adapt_delta: 0.95,
+      adapt_delta: 0.8,  // Start with Stan default; increase if divergences occur
       max_treedepth: 12,
       parallel_chains: true
     }
