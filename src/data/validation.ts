@@ -199,10 +199,12 @@ export function generateDataSummary(
 
     // Calculate statistics for continuous/binary items
     if (itemMeta?.item_type === 'binary' || itemMeta?.item_type === 'continuous') {
-      const sum = values.reduce((a, b) => a + b, 0);
-      summary.mean = sum / values.length;
-      const variance = values.reduce((a, b) => a + Math.pow(b - summary.mean!, 2), 0) / values.length;
-      summary.sd = Math.sqrt(variance);
+      if (values.length > 0) {
+        const sum = values.reduce((a, b) => a + b, 0);
+        summary.mean = sum / values.length;
+        const variance = values.reduce((a, b) => a + Math.pow(b - summary.mean!, 2), 0) / values.length;
+        summary.sd = Math.sqrt(variance);
+      }
     }
 
     // Calculate category frequencies for ordinal/nominal
