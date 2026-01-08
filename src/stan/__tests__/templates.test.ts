@@ -90,6 +90,30 @@ describe('Stan Templates', () => {
       expect(code).toContain('step_difficulty');
       expect(code).toContain('categorical_logit');
     });
+
+    it('should reject multidimensional specifications', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_2pl',
+        link: 'logit',
+        dimensions: 2,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow('dimension');
+    });
+
+    it('should reject multilevel specifications', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_2pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'random_intercept'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow('multilevel');
+    });
   });
 
   describe('getDefaultPriors', () => {
