@@ -168,6 +168,7 @@ export interface EquatingConfiguration {
   base_form: string;
   target_forms: string[];
   anchor_items: string[];
+  anchor_drift_threshold?: number;
   compute_se?: boolean;
   sensitivity_analysis?: boolean;
 }

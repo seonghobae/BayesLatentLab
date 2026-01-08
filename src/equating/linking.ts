@@ -383,6 +383,13 @@ async function performAnchorDiagnostics(
   }
   const anchorDrift: { [itemId: string]: number } = {};
   const anchorDif: { [itemId: string]: boolean } = {};
+  const configuredThreshold = config.anchor_drift_threshold;
+  const driftThreshold = typeof configuredThreshold === 'number'
+    && Number.isFinite(configuredThreshold)
+    && configuredThreshold >= 0
+    && configuredThreshold <= 1
+      ? configuredThreshold
+      : 0.5;
 
   // Compute drift for each anchor item
   config.anchor_items.forEach(itemId => {
@@ -392,7 +399,7 @@ async function performAnchorDiagnostics(
     if (baseItem && targetItem) {
       const drift = Math.abs(baseItem.difficulty - targetItem.difficulty);
       anchorDrift[itemId] = drift;
-      anchorDif[itemId] = drift > 0.5;  // Simple threshold
+      anchorDif[itemId] = drift > driftThreshold;
     }
   });
 
