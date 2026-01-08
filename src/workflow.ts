@@ -186,7 +186,7 @@ function prepareStanData(
   
   // Create mappings - sort for reproducibility
   const personIds = Array.from(new Set(responses.map(r => r.person_id))).sort();
-  const itemIds = Array.from(new Set(responses.map(r => r.item_id))).sort();
+  const itemIds = Array.from(new Set(items.map(item => item.item_id))).sort();
   
   const personMap = new Map(personIds.map((id, i) => [id, i + 1]));
   const itemMap = new Map(itemIds.map((id, i) => [id, i + 1]));
