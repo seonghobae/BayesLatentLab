@@ -5,7 +5,9 @@
 import type { 
   ResponseData, 
   ItemMetadata,
-  ModelResults
+  ModelResults,
+  ParameterEstimates,
+  ParameterSummary
 } from './types/index.js';
 import type { AnalysisConfiguration } from './models/specification.js';
 import { 
@@ -93,6 +95,46 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
     // Step 7: Post-processing (placeholder)
     log('Step 7: Post-processing results...');
 
+    // TODO: Replace placeholder parameter summaries with Stan extraction.
+    const placeholderSummary = (): ParameterSummary => ({
+      mean: 0,
+      median: 0,
+      sd: 0,
+      q025: 0,
+      q975: 0,
+      ess_bulk: 0,
+      ess_tail: 0,
+      rhat: 1
+    });
+    const personIds = Array.from(new Set(input.responses.map(r => r.person_id)));
+    const itemIds = Array.from(new Set(input.items.map(item => item.item_id)));
+    const thetaParams = Object.fromEntries(
+      personIds.map(id => [id, placeholderSummary()])
+    );
+    const itemParams = Object.fromEntries(
+      itemIds.map(id => [id, placeholderSummary()])
+    );
+    const parameters: ParameterEstimates = {
+      theta: thetaParams,
+      discrimination: itemParams,
+      difficulty: itemParams
+    };
+    if (input.config.model.model_family === 'irt_3pl') {
+      parameters.guessing = itemParams;
+    }
+    if (input.config.model.model_family === 'grm' || input.config.model.model_family === 'gpcm') {
+      const thresholds: Record<string, ParameterSummary[]> = {};
+      input.items.forEach(item => {
+        if (item.categories && item.categories.length > 1) {
+          thresholds[item.item_id] = Array.from(
+            { length: item.categories.length - 1 },
+            () => placeholderSummary()
+          );
+        }
+      });
+      parameters.thresholds = thresholds;
+    }
+
     // For now, return a placeholder result
     const results: ModelResults = {
       model_id: `model_${Date.now()}`,
@@ -106,7 +148,7 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
         max_treedepth_hits: 0,
         converged: true
       },
-      parameters: {},
+      parameters,
       warnings: warnings,
       timestamp: new Date(),
       seed: input.config.estimation.seed
