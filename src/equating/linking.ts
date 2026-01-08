@@ -2,6 +2,7 @@
  * Test equating and linking module
  */
 
+import { calculateICC } from '../utils/irt.js';
 import type { 
   EquatingConfiguration, 
   EquatingResults,
@@ -324,14 +325,24 @@ function generateConversionTable(
   
   const table: ConversionTableEntry[] = [];
   const thetaRange = Array.from({ length: 61 }, (_, i) => -3 + i * 0.1);
+  const baseItems = Object.values(baseForm.item_parameters);
+  const targetItems = Object.values(targetForm.item_parameters);
+  if (baseItems.length === 0 || targetItems.length === 0) {
+    throw new Error('Equating requires item parameters for both base and target forms');
+  }
+  const expectedScore = (theta: number, items: ItemParams[]): number => {
+    return items.reduce((sum, item) => {
+      return sum + calculateICC(theta, item.discrimination, item.difficulty);
+    }, 0);
+  };
 
   thetaRange.forEach(theta => {
     // Transform theta to target scale
     const thetaTarget = linking.slope * theta + linking.intercept;
     
-    // Compute expected scores (placeholder)
-    const rawScore = theta * 10 + 50;  // Simplified
-    const equatedScore = thetaTarget * 10 + 50;  // Simplified
+    // Compute expected scores based on item response functions
+    const rawScore = expectedScore(theta, baseItems);
+    const equatedScore = expectedScore(thetaTarget, targetItems);
     
     table.push({
       raw_score: Math.round(rawScore),
