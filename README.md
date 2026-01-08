@@ -57,7 +57,7 @@ BayesLatentLab is a comprehensive analysis toolkit for psychometric modeling tha
 ### Prerequisites
 
 - Node.js >= 18.0.0
-- CmdStan (for Bayesian estimation)
+- CmdStan >= 2.33.1 (Stan 2.33+ array syntax)
 
 ### Install Dependencies
 
