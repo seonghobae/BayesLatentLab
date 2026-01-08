@@ -7,7 +7,7 @@ import {
   loadConfigFromYAML,
   saveConfigToYAML,
   exampleConfigs
-} from '../specification';
+} from '../specification.js';
 
 describe('Model Specification', () => {
   describe('createDefaultConfig', () => {

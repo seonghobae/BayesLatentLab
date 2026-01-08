@@ -2,8 +2,8 @@
  * Tests for Stan template generation
  */
 
-import { generateStanModel, getDefaultPriors } from '../templates';
-import { ModelSpecification } from '../../types';
+import { generateStanModel, getDefaultPriors } from '../templates.js';
+import type { ModelSpecification } from '../../types/index.js';
 
 describe('Stan Templates', () => {
   describe('generateStanModel', () => {

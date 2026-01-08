@@ -2,7 +2,7 @@
  * DIF (Differential Item Functioning) detection module
  */
 
-import { DIFConfiguration, DIFResults, DIFItemResult } from '../types';
+import type { DIFConfiguration, DIFResults, DIFItemResult } from '../types/index.js';
 
 /**
  * Run DIF analysis
@@ -76,9 +76,9 @@ async function runIRTLikelihoodRatioDIF(
     itemResults[itemId] = {
       statistic: lr,
       p_value: pValue,
-      effect_size: effectSize,
       flagged,
-      parameter_differences: computeParameterDifferences(itemId, groupData)
+      parameter_differences: computeParameterDifferences(itemId, groupData),
+      ...(effectSize !== undefined ? { effect_size: effectSize } : {})
     };
 
     if (flagged) {
@@ -123,12 +123,13 @@ async function runWaldDIF(
     
     const flagged = pValue < 0.05;
 
+    const effectSize = config.effect_size ? computeDIFEffectSize(itemId, groupData) : undefined;
     itemResults[itemId] = {
       statistic: waldStat,
       p_value: pValue,
-      effect_size: config.effect_size ? computeDIFEffectSize(itemId, groupData) : undefined,
       flagged,
-      parameter_differences: computeParameterDifferences(itemId, groupData)
+      parameter_differences: computeParameterDifferences(itemId, groupData),
+      ...(effectSize !== undefined ? { effect_size: effectSize } : {})
     };
 
     if (flagged) {
@@ -178,12 +179,13 @@ async function runBayesianDIF(
     
     const flagged = posteriorProb > 0.95;  // High posterior probability of DIF
 
+    const effectSize = config.effect_size ? computeDIFEffectSize(itemId, groupData) : undefined;
     itemResults[itemId] = {
       statistic: posteriorProb,
       p_value: 1 - posteriorProb,  // Convert to p-value analog
-      effect_size: config.effect_size ? computeDIFEffectSize(itemId, groupData) : undefined,
       flagged,
-      parameter_differences: computeParameterDifferences(itemId, groupData)
+      parameter_differences: computeParameterDifferences(itemId, groupData),
+      ...(effectSize !== undefined ? { effect_size: effectSize } : {})
     };
 
     if (flagged) {
@@ -258,7 +260,10 @@ function applyMultipleComparisonCorrection(
   method: string
 ): void {
   const itemIds = Object.keys(itemResults);
-  const pValues = itemIds.map(id => itemResults[id].p_value);
+  const pValues = itemIds.map(id => {
+    const result = itemResults[id];
+    return result ? result.p_value : 1;
+  });
   
   let adjustedPValues: number[];
   
@@ -278,8 +283,13 @@ function applyMultipleComparisonCorrection(
   
   // Update p-values and flagged status
   itemIds.forEach((id, i) => {
-    itemResults[id].p_value = adjustedPValues[i];
-    itemResults[id].flagged = adjustedPValues[i] < 0.05;
+    const result = itemResults[id];
+    const adjusted = adjustedPValues[i];
+    if (!result || adjusted === undefined) {
+      return;
+    }
+    result.p_value = adjusted;
+    result.flagged = adjusted < 0.05;
   });
 }
 
@@ -291,9 +301,13 @@ function holmCorrection(pValues: number[]): number[] {
   
   // Process in sorted order and enforce monotonicity
   for (let k = 0; k < n; k++) {
-    const current = Math.min(indexed[k].p * (n - k), 1);
+    const entry = indexed[k];
+    if (!entry) {
+      continue;
+    }
+    const current = Math.min(entry.p * (n - k), 1);
     maxAdjusted = Math.max(maxAdjusted, current);
-    adjusted[indexed[k].i] = maxAdjusted;
+    adjusted[entry.i] = maxAdjusted;
   }
   
   return adjusted;
@@ -307,9 +321,13 @@ function fdrCorrection(pValues: number[]): number[] {
   
   // Process in reverse order to ensure monotonicity
   for (let k = n - 1; k >= 0; k--) {
-    const current = Math.min(indexed[k].p * n / (k + 1), 1);
+    const entry = indexed[k];
+    if (!entry) {
+      continue;
+    }
+    const current = Math.min(entry.p * n / (k + 1), 1);
     minAdjusted = Math.min(minAdjusted, current);
-    adjusted[indexed[k].i] = minAdjusted;
+    adjusted[entry.i] = minAdjusted;
   }
   
   return adjusted;

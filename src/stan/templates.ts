@@ -2,7 +2,7 @@
  * Stan model template generator for IRT models
  */
 
-import { ModelSpecification, IRTModelFamily } from '../types';
+import type { ModelSpecification, IRTModelFamily } from '../types/index.js';
 
 export interface StanModelTemplate {
   data_block: string;

@@ -2,14 +2,14 @@
  * Test equating and linking module
  */
 
-import { 
+import type { 
   EquatingConfiguration, 
   EquatingResults,
   LinkingCoefficients,
   ConversionTableEntry,
   EquatingError,
   AnchorDiagnostics
-} from '../types';
+} from '../types/index.js';
 
 interface FormParameters {
   form_id: string;
@@ -52,6 +52,14 @@ async function runConcurrentCalibration(
   formData: FormParameters[]
 ): Promise<EquatingResults> {
   
+  if (formData.length < 2) {
+    throw new Error('Concurrent calibration requires at least two forms');
+  }
+  const [baseForm, targetForm] = formData;
+  if (!baseForm || !targetForm) {
+    throw new Error('Concurrent calibration requires at least two forms');
+  }
+
   // In concurrent calibration, parameters are already on same scale
   const linkingCoefficients: LinkingCoefficients = {
     slope: 1.0,
@@ -61,8 +69,8 @@ async function runConcurrentCalibration(
   };
 
   const conversionTable = generateConversionTable(
-    formData[0],
-    formData[1],
+    baseForm,
+    targetForm,
     linkingCoefficients
   );
 
@@ -77,7 +85,7 @@ async function runConcurrentCalibration(
     linking_coefficients: linkingCoefficients,
     conversion_table: conversionTable,
     equating_error: equatingError,
-    anchor_diagnostics: anchorDiagnostics
+    ...(anchorDiagnostics ? { anchor_diagnostics: anchorDiagnostics } : {})
   };
 }
 
@@ -121,7 +129,7 @@ async function runSeparateLinking(
     linking_coefficients: linkingCoefficients,
     conversion_table: conversionTable,
     equating_error: equatingError,
-    anchor_diagnostics: anchorDiagnostics
+    ...(anchorDiagnostics ? { anchor_diagnostics: anchorDiagnostics } : {})
   };
 }
 
@@ -329,7 +337,7 @@ function generateConversionTable(
       raw_score: Math.round(rawScore),
       theta: theta,
       equated_score: Math.round(equatedScore),
-      se: linking.intercept_se
+      ...(linking.intercept_se !== undefined ? { se: linking.intercept_se } : {})
     });
   });
 
@@ -369,13 +377,17 @@ async function performAnchorDiagnostics(
   formData: FormParameters[]
 ): Promise<AnchorDiagnostics> {
   
+  const [baseForm, targetForm] = formData;
+  if (!baseForm || !targetForm) {
+    throw new Error('Anchor diagnostics require at least two forms');
+  }
   const anchorDrift: { [itemId: string]: number } = {};
   const anchorDif: { [itemId: string]: boolean } = {};
 
   // Compute drift for each anchor item
   config.anchor_items.forEach(itemId => {
-    const baseItem = formData[0].item_parameters[itemId];
-    const targetItem = formData[1].item_parameters[itemId];
+    const baseItem = baseForm.item_parameters[itemId];
+    const targetItem = targetForm.item_parameters[itemId];
     
     if (baseItem && targetItem) {
       const drift = Math.abs(baseItem.difficulty - targetItem.difficulty);

@@ -3,13 +3,13 @@
  */
 
 import * as yaml from 'yaml';
-import { 
+import type { 
   ModelSpecification, 
   EstimationSettings,
   DIFConfiguration,
   EquatingConfiguration,
   PriorSpecification
-} from '../types';
+} from '../types/index.js';
 
 export interface AnalysisConfiguration {
   model: ModelSpecification;

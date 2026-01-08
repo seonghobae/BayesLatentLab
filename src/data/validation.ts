@@ -3,7 +3,7 @@
  */
 
 import { z } from 'zod';
-import { ResponseData, ItemMetadata, ItemType } from '../types/index.js';
+import type { ResponseData, ItemMetadata, ItemType } from '../types/index.js';
 
 // Zod schemas for validation
 export const ResponseDataSchema = z.object({
@@ -90,7 +90,15 @@ export function validateResponseData(data: unknown[]): ValidationResult {
     if (!result.success) {
       errors.push(`Row ${index}: ${result.error.message}`);
     } else {
-      validResponses.push(result.data);
+      const cleaned: ResponseData = {
+        person_id: result.data.person_id,
+        item_id: result.data.item_id,
+        response: result.data.response,
+        ...(result.data.group_id !== undefined ? { group_id: result.data.group_id } : {}),
+        ...(result.data.form_id !== undefined ? { form_id: result.data.form_id } : {}),
+        ...(result.data.weight !== undefined ? { weight: result.data.weight } : {})
+      };
+      validResponses.push(cleaned);
     }
   });
 
@@ -129,7 +137,15 @@ export function validateItemMetadata(metadata: unknown[]): ValidationResult {
     if (!result.success) {
       errors.push(`Item ${_index}: ${result.error.message}`);
     } else {
-      validItems.push(result.data);
+      const cleaned: ItemMetadata = {
+        item_id: result.data.item_id,
+        item_type: result.data.item_type,
+        ...(result.data.categories !== undefined ? { categories: result.data.categories } : {}),
+        ...(result.data.category_labels !== undefined ? { category_labels: result.data.category_labels } : {}),
+        ...(result.data.reverse_coded !== undefined ? { reverse_coded: result.data.reverse_coded } : {}),
+        ...(result.data.anchor_item !== undefined ? { anchor_item: result.data.anchor_item } : {})
+      };
+      validItems.push(cleaned);
 
       // Check category specifications
       if (result.data.item_type === 'ordinal' || result.data.item_type === 'nominal') {
@@ -241,8 +257,8 @@ export function generateDataSummary(
     n_responses: responses.length,
     missing_rate: 1 - (responses.length / (personIds.size * itemIds.size)),
     item_summaries: itemSummaries,
-    group_summaries: groupSummaries,
-    form_summaries: formSummaries
+    ...(groupSummaries ? { group_summaries: groupSummaries } : {}),
+    ...(formSummaries ? { form_summaries: formSummaries } : {})
   };
 }
 

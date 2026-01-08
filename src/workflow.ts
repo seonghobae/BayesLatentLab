@@ -2,19 +2,19 @@
  * Main analysis workflow orchestration
  */
 
-import { 
+import type { 
   ResponseData, 
   ItemMetadata,
   ModelResults
-} from './types';
-import { AnalysisConfiguration } from './models/specification';
+} from './types/index.js';
+import type { AnalysisConfiguration } from './models/specification.js';
 import { 
   validateResponseData, 
   validateItemMetadata, 
   generateDataSummary,
   checkDataQuality 
-} from './data/validation';
-import { generateStanModel, getDefaultPriors } from './stan/templates';
+} from './data/validation.js';
+import { generateStanModel, getDefaultPriors } from './stan/templates.js';
 
 export interface AnalysisInput {
   responses: ResponseData[];

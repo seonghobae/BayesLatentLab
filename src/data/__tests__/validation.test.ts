@@ -7,8 +7,8 @@ import {
   validateItemMetadata,
   generateDataSummary,
   checkDataQuality
-} from '../validation';
-import { ResponseData, ItemMetadata } from '../../types';
+} from '../validation.js';
+import type { ResponseData, ItemMetadata } from '../../types/index.js';
 
 describe('Data Validation', () => {
   describe('validateResponseData', () => {
@@ -117,6 +117,10 @@ describe('Data Validation', () => {
 
       const summary = generateDataSummary(responses, items);
       const itemSummary = summary.item_summaries[0];
+      expect(itemSummary).toBeDefined();
+      if (!itemSummary) {
+        throw new Error('Expected item summary to be defined');
+      }
 
       expect(itemSummary.n_responses).toBe(3);
       expect(itemSummary.mean).toBeCloseTo(0.667, 2);

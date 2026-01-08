@@ -84,6 +84,13 @@ export function calculateGRMExpectedScore(
   thresholds: number[]
 ): number {
   const K = thresholds.length + 1;
+  if (thresholds.length === 0) {
+    throw new Error('GRM thresholds must include at least one value.');
+  }
+  const firstThreshold = thresholds[0];
+  if (firstThreshold === undefined) {
+    throw new Error('GRM thresholds are missing the first cutoff.');
+  }
   let expectedScore = 0;
 
   for (let k = 0; k < K; k++) {
@@ -91,14 +98,23 @@ export function calculateGRMExpectedScore(
     
     if (k === 0) {
       // P(Y >= 1) - P(Y >= 2)
-      p = 1 - (1 / (1 + Math.exp(-(discrimination * theta - thresholds[0]))));
+      p = 1 - (1 / (1 + Math.exp(-(discrimination * theta - firstThreshold))));
     } else if (k === K - 1) {
       // P(Y >= K)
-      p = 1 / (1 + Math.exp(-(discrimination * theta - thresholds[k - 1])));
+      const thresholdPrev = thresholds[k - 1];
+      if (thresholdPrev === undefined) {
+        throw new Error('GRM thresholds are missing the final cutoff.');
+      }
+      p = 1 / (1 + Math.exp(-(discrimination * theta - thresholdPrev)));
     } else {
       // P(Y >= k) - P(Y >= k+1)
-      const pGEk = 1 / (1 + Math.exp(-(discrimination * theta - thresholds[k - 1])));
-      const pGEk1 = 1 / (1 + Math.exp(-(discrimination * theta - thresholds[k])));
+      const thresholdPrev = thresholds[k - 1];
+      const thresholdNext = thresholds[k];
+      if (thresholdPrev === undefined || thresholdNext === undefined) {
+        throw new Error('GRM thresholds are missing intermediate cutoffs.');
+      }
+      const pGEk = 1 / (1 + Math.exp(-(discrimination * theta - thresholdPrev)));
+      const pGEk1 = 1 / (1 + Math.exp(-(discrimination * theta - thresholdNext)));
       p = pGEk - pGEk1;
     }
     
