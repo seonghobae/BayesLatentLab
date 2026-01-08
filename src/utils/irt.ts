@@ -34,8 +34,8 @@ export function calculateTCC(
       theta,
       item.discrimination,
       item.difficulty,
-      item.guessing || 0,
-      item.upperAsymptote || 1
+      item.guessing ?? 0,
+      item.upperAsymptote ?? 1
     );
   }, 0);
 }
@@ -46,10 +46,33 @@ export function calculateTCC(
 export function calculateItemInformation(
   theta: number,
   discrimination: number,
-  difficulty: number
+  difficulty: number,
+  guessing: number = 0,
+  upperAsymptote: number = 1
 ): number {
-  const p = calculateICC(theta, discrimination, difficulty);
-  return discrimination * discrimination * p * (1 - p);
+  const p = calculateICC(theta, discrimination, difficulty, guessing, upperAsymptote);
+
+  if (guessing === 0 && upperAsymptote === 1) {
+    // 1PL/2PL formula
+    return discrimination * discrimination * p * (1 - p);
+  }
+
+  if (upperAsymptote === 1) {
+    // 3PL formula
+    const denominator = Math.pow(1 - guessing, 2) * p * (1 - p);
+    if (denominator <= 0) {
+      return 0;
+    }
+    return discrimination * discrimination * Math.pow(p - guessing, 2) / denominator;
+  }
+
+  // 4PL formula
+  const denominator = Math.pow(upperAsymptote - guessing, 2) * p * (1 - p);
+  if (denominator <= 0) {
+    return 0;
+  }
+  const numerator = Math.pow(p - guessing, 2) * Math.pow(upperAsymptote - p, 2);
+  return discrimination * discrimination * numerator / denominator;
 }
 
 /**
@@ -57,10 +80,16 @@ export function calculateItemInformation(
  */
 export function calculateTestInformation(
   theta: number,
-  items: Array<{ discrimination: number; difficulty: number }>
+  items: Array<{ discrimination: number; difficulty: number; guessing?: number; upperAsymptote?: number }>
 ): number {
   return items.reduce((sum, item) => {
-    return sum + calculateItemInformation(theta, item.discrimination, item.difficulty);
+    return sum + calculateItemInformation(
+      theta,
+      item.discrimination,
+      item.difficulty,
+      item.guessing ?? 0,
+      item.upperAsymptote ?? 1
+    );
   }, 0);
 }
 
@@ -69,7 +98,7 @@ export function calculateTestInformation(
  */
 export function calculateSEM(
   theta: number,
-  items: Array<{ discrimination: number; difficulty: number }>
+  items: Array<{ discrimination: number; difficulty: number; guessing?: number; upperAsymptote?: number }>
 ): number {
   const information = calculateTestInformation(theta, items);
   return information > 0 ? 1 / Math.sqrt(information) : Infinity;
@@ -161,7 +190,7 @@ export function transformParameters(
  */
 export function rawScoreToTheta(
   rawScore: number,
-  items: Array<{ discrimination: number; difficulty: number }>,
+  items: Array<{ discrimination: number; difficulty: number; guessing?: number; upperAsymptote?: number }>,
   maxIterations: number = 100,
   tolerance: number = 0.001
 ): number {
@@ -185,9 +214,21 @@ export function rawScoreToTheta(
     let information = 0;
     
     items.forEach(item => {
-      const p = calculateICC(theta, item.discrimination, item.difficulty);
+      const p = calculateICC(
+        theta,
+        item.discrimination,
+        item.difficulty,
+        item.guessing ?? 0,
+        item.upperAsymptote ?? 1
+      );
       expectedScore += p;
-      information += calculateItemInformation(theta, item.discrimination, item.difficulty);
+      information += calculateItemInformation(
+        theta,
+        item.discrimination,
+        item.difficulty,
+        item.guessing ?? 0,
+        item.upperAsymptote ?? 1
+      );
     });
     
     const diff = rawScore - expectedScore;
