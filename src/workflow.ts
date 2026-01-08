@@ -222,8 +222,8 @@ function prepareStanData(
 
   // Add ordinal-specific data if needed
   if (config.model.model_family === 'grm' || config.model.model_family === 'gpcm') {
-    const ordinalItems = items.filter(item => 
-      item.categories && item.categories.length > 0
+    const ordinalItems = items.filter(item =>
+      item.categories && item.categories.length >= 2
     );
     
     if (ordinalItems.length === 0) {
