@@ -16,8 +16,9 @@ export interface StanModelTemplate {
  * Generate Stan model code from specification
  */
 export function generateStanModel(spec: ModelSpecification): string {
-  if (spec.dimensions !== 1) {
-    throw new Error(`Stan template generation supports only 1 dimension (got ${spec.dimensions}).`);
+  const resolvedDimensions = spec.dimensions === 'auto' ? 1 : spec.dimensions;
+  if (resolvedDimensions !== 1) {
+    throw new Error(`Stan template generation supports only 1 dimension (got ${resolvedDimensions}).`);
   }
   if (spec.multilevel !== 'none') {
     throw new Error(`Stan template generation does not support multilevel models (got ${spec.multilevel}).`);
