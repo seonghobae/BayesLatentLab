@@ -206,7 +206,14 @@ export function rawScoreToTheta(
   rawScore: number,
   items: Array<{ discrimination: number; difficulty: number; guessing?: number; upperAsymptote?: number }>,
   maxIterations: number = 100,
-  tolerance: number = 0.001
+  tolerance: number = 0.001,
+  onNonConvergence?: (info: {
+    rawScore: number;
+    theta: number;
+    lastDiff: number;
+    iterations: number;
+    tolerance: number;
+  }) => void
 ): number {
   const nItems = items.length;
   if (nItems === 0) {
@@ -259,10 +266,15 @@ export function rawScoreToTheta(
     }
   }
   
-  console.warn(
-    `rawScoreToTheta did not converge after ${maxIterations} iterations ` +
-    `(rawScore=${rawScore}, theta=${theta}, lastDiff=${lastDiff}, tolerance=${tolerance})`
-  );
+  if (onNonConvergence) {
+    onNonConvergence({
+      rawScore,
+      theta,
+      lastDiff,
+      iterations: maxIterations,
+      tolerance
+    });
+  }
   return theta;
 }
 

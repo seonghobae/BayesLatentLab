@@ -37,9 +37,15 @@ export const VERSION = '0.1.0';
 export const NAME = 'BayesLatentLab';
 
 /**
- * Print version information to console.
- * Call this function explicitly if you need to log version info.
+ * Build version information string.
  */
-export function printVersion(): void {
-  console.log(`${NAME} v${VERSION}`);
+export function getVersionString(): string {
+  return `${NAME} v${VERSION}`;
+}
+
+/**
+ * Send version information to a caller-provided logger.
+ */
+export function printVersion(logger: (message: string) => void): void {
+  logger(getVersionString());
 }

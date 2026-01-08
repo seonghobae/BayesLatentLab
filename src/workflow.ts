@@ -36,7 +36,7 @@ export interface AnalysisOutput {
 export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput> {
   const errors: string[] = [];
   const warnings: string[] = [];
-  const log = input.logger ?? console.log;
+  const log = input.logger ?? (() => {});
 
   try {
     // Step 1: Validate input data
