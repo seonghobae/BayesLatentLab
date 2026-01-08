@@ -187,6 +187,13 @@ export function generateDataSummary(
 
   // Calculate item summaries
   const summaryWarnings: string[] = [];
+  const missingItemIds = Array.from(itemIds).filter(itemId => !itemMap.has(itemId));
+  if (missingItemIds.length > 0) {
+    const sample = missingItemIds.slice(0, 5).join(', ');
+    summaryWarnings.push(
+      `Responses include ${missingItemIds.length} item_id(s) without metadata: ${sample}${missingItemIds.length > 5 ? '...' : ''}`
+    );
+  }
   const itemSummaries: ItemSummary[] = Array.from(itemIds).map(itemId => {
     const itemResponses = responses.filter(r => r.item_id === itemId);
     const itemMeta = itemMap.get(itemId);
