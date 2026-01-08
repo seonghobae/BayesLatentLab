@@ -23,6 +23,7 @@ export interface AnalysisInput {
   items: ItemMetadata[];
   config: AnalysisConfiguration;
   logger?: (message: string) => void;
+  stanRunner?: (data: Record<string, unknown>, config: AnalysisConfiguration) => Promise<ParameterEstimates>;
 }
 
 export interface AnalysisOutput {
@@ -83,14 +84,20 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
 
     // Step 5: Prepare data for Stan
     log('Step 5: Preparing data for Stan...');
-    prepareStanData(input.responses, input.items, input.config);  // For future Stan execution
+    const stanData = prepareStanData(input.responses, input.items, input.config);
 
-    // Step 6: Run Stan estimation (placeholder)
-    log('Step 6: Running Stan estimation...');
-    log('  [Note: Actual Stan execution requires CmdStan installation]');
-    log(`  - Chains: ${input.config.estimation.chains}`);
-    log(`  - Iterations: ${input.config.estimation.iterations}`);
-    log(`  - Warmup: ${input.config.estimation.warmup}`);
+    // Step 6: Run Stan estimation (optional)
+    let stanParameters: ParameterEstimates | null = null;
+    if (input.stanRunner) {
+      log('Step 6: Running Stan estimation...');
+      log(`  - Chains: ${input.config.estimation.chains}`);
+      log(`  - Iterations: ${input.config.estimation.iterations}`);
+      log(`  - Warmup: ${input.config.estimation.warmup}`);
+      stanParameters = await input.stanRunner(stanData, input.config);
+    } else {
+      log('Step 6: Skipping Stan estimation (no stanRunner provided).');
+      warnings.push('Stan execution is not implemented; provide a stanRunner to run CmdStan.');
+    }
 
     // Step 7: Post-processing (placeholder)
     log('Step 7: Post-processing results...');
@@ -114,13 +121,13 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
     const itemParams = Object.fromEntries(
       itemIds.map(id => [id, placeholderSummary()])
     );
-    const parameters: ParameterEstimates = {
+    const fallbackParameters: ParameterEstimates = {
       theta: thetaParams,
       discrimination: itemParams,
       difficulty: itemParams
     };
     if (input.config.model.model_family === 'irt_3pl') {
-      parameters.guessing = itemParams;
+      fallbackParameters.guessing = itemParams;
     }
     if (input.config.model.model_family === 'grm' || input.config.model.model_family === 'gpcm') {
       const thresholds: Record<string, ParameterSummary[]> = {};
@@ -132,8 +139,9 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisOutput>
           );
         }
       });
-      parameters.thresholds = thresholds;
+      fallbackParameters.thresholds = thresholds;
     }
+    const parameters = stanParameters ?? fallbackParameters;
 
     // For now, return a placeholder result
     const results: ModelResults = {
