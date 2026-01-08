@@ -65,7 +65,7 @@ export function createDefaultConfig(): AnalysisConfiguration {
       link: 'logit',
       dimensions: 1,
       multilevel: 'none',
-      priors: getDefaultPriors()
+      priors: getDefaultPriorSpec()
     },
     estimation: {
       sampler: 'nuts',
@@ -82,9 +82,9 @@ export function createDefaultConfig(): AnalysisConfiguration {
 }
 
 /**
- * Get default priors
+ * Get default prior specification
  */
-function getDefaultPriors(): PriorSpecification {
+function getDefaultPriorSpec(): PriorSpecification {
   return {
     theta_mean: 0,
     theta_sd: 1,
