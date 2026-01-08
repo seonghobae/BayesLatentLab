@@ -191,9 +191,9 @@ export interface ModelResults {
 
 // Convergence diagnostics
 export interface ConvergenceDiagnostics {
-  rhat: { [param: string]: number };
-  ess_bulk: { [param: string]: number };
-  ess_tail: { [param: string]: number };
+  rhat: Record<string, number | undefined>;
+  ess_bulk: Record<string, number | undefined>;
+  ess_tail: Record<string, number | undefined>;
   divergences: number;
   max_treedepth_hits: number;
   converged: boolean;
