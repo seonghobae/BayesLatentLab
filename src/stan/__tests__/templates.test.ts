@@ -1,0 +1,211 @@
+/**
+ * Tests for Stan template generation
+ */
+
+import { generateStanModel, getDefaultPriors } from '../templates.js';
+import type { ModelSpecification } from '../../types/index.js';
+
+describe('Stan Templates', () => {
+  describe('generateStanModel', () => {
+    it('should generate Rasch model code', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'rasch_1pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      const code = generateStanModel(spec);
+      
+      expect(code).toContain('data {');
+      expect(code).toContain('parameters {');
+      expect(code).toContain('model {');
+      expect(code).toContain('difficulty');
+      expect(code).toContain('theta');
+      // Rasch model has fixed discrimination (not a parameter)
+      expect(code).not.toContain('vector<lower=0>[I] discrimination');
+    });
+
+    it('should generate 2PL model code', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_2pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      const code = generateStanModel(spec);
+      
+      expect(code).toContain('discrimination');
+      expect(code).toContain('difficulty');
+      expect(code).toContain('vector<lower=0>[I] discrimination');
+    });
+
+    it('should generate 3PL model code', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_3pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      const code = generateStanModel(spec);
+      
+      expect(code).toContain('discrimination');
+      expect(code).toContain('difficulty');
+      expect(code).toContain('guessing');
+      expect(code).toContain('prior_guessing_alpha');
+    });
+
+    it('should generate GRM model code', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'grm',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      const code = generateStanModel(spec);
+      
+      expect(code).toContain('thresholds');
+      expect(code).toContain('ordered[K-1]');
+      expect(code).toContain('ordered_logistic');
+    });
+
+    it('should generate GPCM model code', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'gpcm',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      const code = generateStanModel(spec);
+      
+      expect(code).toContain('step_difficulty');
+      expect(code).toContain('categorical_logit');
+    });
+
+    it('should reject unimplemented 4PL template', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_4pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow(/not implemented/i);
+    });
+
+    it('should reject unimplemented 5PL template', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_5pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow(/not implemented/i);
+    });
+
+    it('should reject unimplemented PCM template', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'pcm',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow(/not implemented/i);
+    });
+
+    it('should reject unimplemented NRM template', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'nrm',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow(/not implemented/i);
+    });
+
+    it('should reject multidimensional specifications', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_2pl',
+        link: 'logit',
+        dimensions: 2,
+        multilevel: 'none'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow('dimension');
+    });
+
+    it('should reject multilevel specifications', () => {
+      const spec: ModelSpecification = {
+        model_type: 'irt',
+        model_family: 'irt_2pl',
+        link: 'logit',
+        dimensions: 1,
+        multilevel: 'random_intercept'
+      };
+
+      expect(() => generateStanModel(spec)).toThrow('multilevel');
+    });
+  });
+
+  describe('getDefaultPriors', () => {
+    it('should return priors for Rasch model', () => {
+      const priors = getDefaultPriors('rasch_1pl');
+      
+      expect(priors).toHaveProperty('prior_theta_sd');
+      expect(priors).toHaveProperty('prior_difficulty_mean');
+      expect(priors).toHaveProperty('prior_difficulty_sd');
+      expect(priors).not.toHaveProperty('prior_discrimination_mean');
+    });
+
+    it('should return priors for 2PL model', () => {
+      const priors = getDefaultPriors('irt_2pl');
+      
+      expect(priors).toHaveProperty('prior_discrimination_mean');
+      expect(priors).toHaveProperty('prior_discrimination_sd');
+      expect(priors).toHaveProperty('prior_difficulty_mean');
+      expect(priors).toHaveProperty('prior_difficulty_sd');
+    });
+
+    it('should return priors for 3PL model', () => {
+      const priors = getDefaultPriors('irt_3pl');
+      
+      expect(priors).toHaveProperty('prior_guessing_alpha');
+      expect(priors).toHaveProperty('prior_guessing_beta');
+    });
+
+    it('should return priors for GRM model', () => {
+      const priors = getDefaultPriors('grm');
+
+      expect(priors).toHaveProperty('prior_theta_sd');
+      expect(priors).toHaveProperty('prior_discrimination_mean');
+      expect(priors).toHaveProperty('prior_difficulty_mean');
+      expect(priors.prior_theta_sd).toBe(1.0);
+    });
+
+    it('should return priors for GPCM model', () => {
+      const priors = getDefaultPriors('gpcm');
+
+      expect(priors).toHaveProperty('prior_theta_sd');
+      expect(priors).toHaveProperty('prior_discrimination_mean');
+      expect(priors).toHaveProperty('prior_difficulty_mean');
+      expect(priors.prior_difficulty_mean).toBe(0.0);
+    });
+  });
+});

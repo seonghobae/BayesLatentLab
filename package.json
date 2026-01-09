@@ -1,0 +1,52 @@
+{
+  "name": "bayes-latent-lab",
+  "version": "0.1.0",
+  "description": "Bayesian Multilevel IRT/CFA/EFA + Test Equating/Linking + DIF + LD Analysis Tool",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "lint": "eslint . --ext .ts",
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "docker:build": "docker build -t bayeslatentlab .",
+    "docker:run": "docker run -p 3000:3000 bayeslatentlab"
+  },
+  "keywords": [
+    "bayesian",
+    "irt",
+    "item-response-theory",
+    "cfa",
+    "efa",
+    "mirt",
+    "multilevel",
+    "psychometrics",
+    "stan",
+    "dif",
+    "equating",
+    "linking"
+  ],
+  "author": "BayesLatentLab Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "csv-parse": "^5.5.3",
+    "jstat": "^1.9.6",
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
