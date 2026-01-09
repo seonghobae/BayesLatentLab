@@ -211,6 +211,7 @@ function meanMeanLinking(
   let sumBase = 0;
   let sumTarget = 0;
   let count = 0;
+  const differences: number[] = [];
 
   anchorItems.forEach(itemId => {
     const baseItem = baseForm.item_parameters[itemId];
@@ -219,6 +220,7 @@ function meanMeanLinking(
     if (baseItem && targetItem) {
       sumBase += baseItem.difficulty;
       sumTarget += targetItem.difficulty;
+      differences.push(baseItem.difficulty - targetItem.difficulty);
       count++;
     }
   });
@@ -229,12 +231,15 @@ function meanMeanLinking(
 
   const meanBase = sumBase / count;
   const meanTarget = sumTarget / count;
+  const interceptSe = differences.length > 1
+    ? standardDeviation(differences) / Math.sqrt(differences.length)
+    : 0;
 
   return {
     slope: 1.0,
     intercept: meanBase - meanTarget,
-    slope_se: 0.1,  // Placeholder
-    intercept_se: 0.2  // Placeholder
+    slope_se: 0.0,
+    intercept_se: interceptSe
   };
 }
 
@@ -277,12 +282,13 @@ function meanSigmaLinking(
 
   const slope = sdDiscBase / sdDiscTarget;
   const intercept = meanDiffBase - slope * meanDiffTarget;
+  const { slope_se, intercept_se } = estimateMeanSigmaSE(difficulties, discriminations);
 
   return {
     slope,
     intercept,
-    slope_se: 0.1,  // Placeholder
-    intercept_se: 0.2  // Placeholder
+    slope_se,
+    intercept_se
   };
 }
 
@@ -486,6 +492,57 @@ function standardDeviation(values: number[]): number {
   const m = mean(values);
   const variance = values.reduce((a, b) => a + Math.pow(b - m, 2), 0) / (values.length - 1);
   return Math.sqrt(variance);
+}
+
+function estimateMeanSigmaSE(
+  difficulties: { base: number[]; target: number[] },
+  discriminations: { base: number[]; target: number[] }
+): { slope_se: number; intercept_se: number } {
+  const n = difficulties.base.length;
+  if (n <= 1) {
+    return { slope_se: 0, intercept_se: 0 };
+  }
+
+  const estimates: Array<{ slope: number; intercept: number }> = [];
+  for (let i = 0; i < n; i++) {
+    const diffBase = difficulties.base.filter((_, idx) => idx !== i);
+    const diffTarget = difficulties.target.filter((_, idx) => idx !== i);
+    const discBase = discriminations.base.filter((_, idx) => idx !== i);
+    const discTarget = discriminations.target.filter((_, idx) => idx !== i);
+
+    if (diffBase.length <= 1 || discBase.length <= 1) {
+      continue;
+    }
+
+    const sdDiscBase = standardDeviation(discBase);
+    const sdDiscTarget = standardDeviation(discTarget);
+    if (sdDiscTarget === 0) {
+      continue;
+    }
+
+    const slope = sdDiscBase / sdDiscTarget;
+    const intercept = mean(diffBase) - slope * mean(diffTarget);
+
+    if (Number.isFinite(slope) && Number.isFinite(intercept)) {
+      estimates.push({ slope, intercept });
+    }
+  }
+
+  if (estimates.length <= 1) {
+    return { slope_se: 0, intercept_se: 0 };
+  }
+
+  const slopeMean = mean(estimates.map(e => e.slope));
+  const interceptMean = mean(estimates.map(e => e.intercept));
+  const factor = (estimates.length - 1) / estimates.length;
+
+  const slopeVar = estimates.reduce((sum, e) => sum + Math.pow(e.slope - slopeMean, 2), 0);
+  const interceptVar = estimates.reduce((sum, e) => sum + Math.pow(e.intercept - interceptMean, 2), 0);
+
+  return {
+    slope_se: Math.sqrt(factor * slopeVar),
+    intercept_se: Math.sqrt(factor * interceptVar)
+  };
 }
 
 function getAnchorPairs(
