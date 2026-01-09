@@ -480,11 +480,11 @@ function mean(values: number[]): number {
 }
 
 function standardDeviation(values: number[]): number {
-  if (values.length === 0) {
+  if (values.length <= 1) {
     return 0;
   }
   const m = mean(values);
-  const variance = values.reduce((a, b) => a + Math.pow(b - m, 2), 0) / values.length;
+  const variance = values.reduce((a, b) => a + Math.pow(b - m, 2), 0) / (values.length - 1);
   return Math.sqrt(variance);
 }
 
