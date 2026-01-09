@@ -305,6 +305,9 @@ function holmCorrection(pValues: number[]): number[] {
     if (!entry) {
       continue;
     }
+    if (!Number.isInteger(entry.i) || entry.i < 0 || entry.i >= n) {
+      continue;
+    }
     const current = Math.min(entry.p * (n - k), 1);
     maxAdjusted = Math.max(maxAdjusted, current);
     adjusted[entry.i] = maxAdjusted;
@@ -323,6 +326,9 @@ function fdrCorrection(pValues: number[]): number[] {
   for (let k = n - 1; k >= 0; k--) {
     const entry = indexed[k];
     if (!entry) {
+      continue;
+    }
+    if (!Number.isInteger(entry.i) || entry.i < 0 || entry.i >= n) {
       continue;
     }
     const current = Math.min(entry.p * n / (k + 1), 1);
