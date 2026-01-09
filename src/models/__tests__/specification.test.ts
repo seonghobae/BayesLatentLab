@@ -59,12 +59,15 @@ estimation:
 
   describe('YAML serialization - error handling', () => {
     it('should throw on invalid YAML syntax', () => {
-      const invalidYaml = 'model:\\n  - invalid: [syntax';
+      const invalidYaml = `model:
+  - invalid: [syntax`;
       expect(() => loadConfigFromYAML(invalidYaml)).toThrow();
     });
 
     it('should throw on missing required fields', () => {
-      const incompleteYaml = 'model:\\n  model_type: irt\\n';
+      const incompleteYaml = `model:
+  model_type: irt
+`;
       expect(() => loadConfigFromYAML(incompleteYaml)).toThrow();
     });
 
