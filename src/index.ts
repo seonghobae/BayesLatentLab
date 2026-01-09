@@ -22,7 +22,7 @@ export * from './dif/analysis.js';
 // Export equating/linking
 export * from './equating/linking.js';
 
-// Note: diagnostics module will be added in future version
+// TODO(#4): Add diagnostics/fit module and enable the export.
 // export * from './diagnostics/fit.js';
 
 /**
