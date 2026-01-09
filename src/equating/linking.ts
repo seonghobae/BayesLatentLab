@@ -1,5 +1,5 @@
 /**
- * Test equating and linking module
+ * Equating and linking module
  */
 
 import { calculateICC } from '../utils/irt.js';
