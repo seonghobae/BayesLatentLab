@@ -2,6 +2,7 @@
  * DIF (Differential Item Functioning) detection module
  */
 
+import { jStat } from 'jstat';
 import type { DIFConfiguration, DIFResults, DIFItemResult } from '../types/index.js';
 
 /**
@@ -250,9 +251,7 @@ function computeParameterDifferences(
 }
 
 function chiSquarePValue(statistic: number, df: number): number {
-  // Placeholder: would use chi-square distribution
-  // For now, use a simple approximation
-  return Math.exp(-statistic / (2 * df));
+  return 1 - jStat.chisquare.cdf(statistic, df);
 }
 
 function applyMultipleComparisonCorrection(
