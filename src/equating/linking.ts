@@ -508,7 +508,12 @@ function getAnchorPairs(
 
 function optimizeLinkingCoefficients(
   initial: LinkingCoefficients,
-  objective: (slope: number, intercept: number) => number
+  objective: (slope: number, intercept: number) => number,
+  options: {
+    stepsCoarse?: number;
+    stepsFine?: number;
+    refine?: boolean;
+  } = {}
 ): LinkingCoefficients {
   const slopeCenter = initial.slope || 1;
   const interceptCenter = initial.intercept || 0;
@@ -516,35 +521,64 @@ function optimizeLinkingCoefficients(
   const slopeMax = slopeCenter * 1.5;
   const interceptMin = interceptCenter - 2;
   const interceptMax = interceptCenter + 2;
-  const steps = 21;
 
-  let bestSlope = slopeCenter;
-  let bestIntercept = interceptCenter;
-  let bestValue = objective(bestSlope, bestIntercept);
+  const stepsCoarse = Math.max(2, options.stepsCoarse ?? 11);
+  const stepsFine = Math.max(2, options.stepsFine ?? 21);
+  const refine = options.refine ?? true;
 
-  for (let i = 0; i < steps; i++) {
-    const slope = slopeMin + (slopeMax - slopeMin) * (i / (steps - 1));
-    for (let j = 0; j < steps; j++) {
-      const intercept = interceptMin + (interceptMax - interceptMin) * (j / (steps - 1));
-      const value = objective(slope, intercept);
-      if (!Number.isFinite(value)) {
-        continue;
-      }
-      if (value < bestValue) {
-        bestValue = value;
-        bestSlope = slope;
-        bestIntercept = intercept;
+  const scanGrid = (
+    slopeStart: number,
+    slopeEnd: number,
+    interceptStart: number,
+    interceptEnd: number,
+    steps: number,
+    currentBest: { slope: number; intercept: number; value: number }
+  ) => {
+    for (let i = 0; i < steps; i++) {
+      const slope = slopeStart + (slopeEnd - slopeStart) * (i / (steps - 1));
+      for (let j = 0; j < steps; j++) {
+        const intercept = interceptStart + (interceptEnd - interceptStart) * (j / (steps - 1));
+        const value = objective(slope, intercept);
+        if (!Number.isFinite(value)) {
+          continue;
+        }
+        if (value < currentBest.value) {
+          currentBest = { slope, intercept, value };
+        }
       }
     }
+    return currentBest;
+  };
+
+  let best = {
+    slope: slopeCenter,
+    intercept: interceptCenter,
+    value: objective(slopeCenter, interceptCenter)
+  };
+  if (!Number.isFinite(best.value)) {
+    best.value = Number.POSITIVE_INFINITY;
   }
 
-  if (!Number.isFinite(bestValue)) {
+  best = scanGrid(slopeMin, slopeMax, interceptMin, interceptMax, stepsCoarse, best);
+
+  if (refine && Number.isFinite(best.value)) {
+    const slopeStep = (slopeMax - slopeMin) / (stepsCoarse - 1);
+    const interceptStep = (interceptMax - interceptMin) / (stepsCoarse - 1);
+    const fineSlopeMin = Math.max(slopeMin, best.slope - slopeStep);
+    const fineSlopeMax = Math.min(slopeMax, best.slope + slopeStep);
+    const fineInterceptMin = Math.max(interceptMin, best.intercept - interceptStep);
+    const fineInterceptMax = Math.min(interceptMax, best.intercept + interceptStep);
+
+    best = scanGrid(fineSlopeMin, fineSlopeMax, fineInterceptMin, fineInterceptMax, stepsFine, best);
+  }
+
+  if (!Number.isFinite(best.value)) {
     return initial;
   }
 
   return {
     ...initial,
-    slope: bestSlope,
-    intercept: bestIntercept
+    slope: best.slope,
+    intercept: best.intercept
   };
 }
