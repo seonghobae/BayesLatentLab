@@ -99,7 +99,11 @@ async function runSeparateLinking(
 ): Promise<EquatingResults> {
   
   const baseForm = formData.find(f => f.form_id === config.base_form);
-  const targetForm = formData.find(f => f.form_id === config.target_forms[0]);
+  const targetFormId = config.target_forms[0];
+  if (!targetFormId) {
+    throw new Error('At least one target form is required');
+  }
+  const targetForm = formData.find(f => f.form_id === targetFormId);
 
   if (!baseForm || !targetForm) {
     throw new Error('Base form or target form not found');
@@ -143,7 +147,11 @@ async function runFIPC(
 ): Promise<EquatingResults> {
   
   const baseForm = formData.find(f => f.form_id === config.base_form);
-  const targetForm = formData.find(f => f.form_id === config.target_forms[0]);
+  const targetFormId = config.target_forms[0];
+  if (!targetFormId) {
+    throw new Error('At least one target form is required');
+  }
+  const targetForm = formData.find(f => f.form_id === targetFormId);
 
   if (!baseForm || !targetForm) {
     throw new Error('Base form or target form not found');
